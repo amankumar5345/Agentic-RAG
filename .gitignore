@@ -1,0 +1,26 @@
+# Environment & Secrets
+.env
+.python-version
+uv.lock
+
+# Virtual Environment & Caches
+.venv/
+__pycache__/
+.deepeval/
+.streamlit/
+.ipynb_checkpoints/
+
+# Legacy Files & Notebooks
+backend.py
+frontend.py
+main.py
+*.ipynb
+NEMO GUARDRAILS RESOURCES/
+
+# Local Vector Database & Raw PDFs
+our_database/chroma_storage/
+our_database/database_documents/
+
+# Audio & Exchange Files
+*.wav
+unreal_mailbox.json

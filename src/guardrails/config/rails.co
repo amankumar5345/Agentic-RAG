@@ -1,0 +1,169 @@
+# ── User Intents ─────────────────────────────────────────────────────────────
+define user express greeting
+  "hello"
+  "hi"
+  "hey"
+  "good morning"
+  "good afternoon"
+  "good evening"
+  "hey there"
+  "howdy"
+  "what's up"
+
+define bot express greeting
+  "DIALOG:Hello! I am your Lithography & Cleanroom Operations Assistant. How can I assist you today with photolithography, wafer processing, equipment maintenance, safety protocols, or 3D visualization?"
+
+define user ask bot identity
+  "who are you?"
+  "what is your name?"
+  "what can you do?"
+  "what is your purpose?"
+  "tell me about yourself"
+  "who made you?"
+
+define bot express identity
+  "DIALOG:I am an intelligent assistant designed specifically for Photolithography and Cleanroom Operations. I can help answer equipment safety questions, provide maintenance troubleshooting, guide lithography processes, and render 3D geometries in Unreal Engine."
+
+define user express gratitude
+  "thank you"
+  "thanks a lot"
+  "appreciate your help"
+  "great, thanks"
+  "perfect, thank you"
+
+define bot express gratitude response
+  "DIALOG:You're welcome! Let me know if you have any more questions about lithography or cleanroom operations."
+
+define user express goodbye
+  "bye"
+  "goodbye"
+  "see you later"
+  "exit"
+  "quit"
+  "catch you later"
+
+define bot express goodbye
+  "DIALOG:Goodbye! Stay safe in the cleanroom, and feel free to reach out whenever you need assistance."
+
+define user ask useless question
+  "tell me a joke"
+  "tell me another joke"
+  "make me laugh"
+  "sing a song"
+  "write a romantic poem"
+  "what is the meaning of life?"
+  "do you believe in aliens?"
+  "tell me a bedtime story"
+  "what is your favorite movie?"
+  "can you rap?"
+  "play a game with me"
+
+define bot refuse useless question
+  "[RAIL_BLOCKED:USELESS_QUESTION] While I appreciate the curiosity, I am strictly configured to assist with Photolithography, wafer fabrication, equipment diagnostics, safety standards, and Unreal Engine visualization. How can I help with your lab tasks?"
+
+define user express gibberish
+  "asdfghjkl"
+  "qwertyuiop"
+  "lalala"
+  "testing 123"
+
+define user express spam
+  "blah blah blah"
+  "1234567890 test"
+
+define bot respond to gibberish
+  "[RAIL_BLOCKED:GIBBERISH] I didn't quite catch that. Please provide a question or command related to Photolithography processes, safety rules, maintenance, or 3D geometry generation."
+
+define user ask off topic
+  "how do I bake a chocolate cake?"
+  "who won the world cup?"
+  "what is the stock price of Apple?"
+  "how to fix my car engine?"
+  "write python code for a snake game"
+  "what is the capital of France?"
+  "how to lose weight fast?"
+  "tell me the latest political news"
+  "how to hack a website?"
+  "recommend a good restaurant near me"
+
+define bot refuse off topic
+  "[RAIL_BLOCKED:OFF_TOPIC] I am a specialized Lithography & Cleanroom Assistant. I cannot answer general knowledge or off-topic questions. Please ask questions related to semiconductor fabrication, lithography equipment, cleanroom safety, or Unreal 3D visualization."
+
+define user ask lithography question
+  "what is the exposure wavelength for EUV"
+  "how do I calibrate the wafer stepper"
+  "what safety equipment is required in cleanroom class 100"
+  "explain photoresist coating procedure"
+  "render a wafer stage in unreal engine"
+  "troubleshoot alignment marks error"
+  "what is depth of focus in optical lithography"
+  "how to prevent photoresist peeling"
+  "what are the emergency shutoff procedures"
+  "draw a silicon wafer"
+
+define bot query passed
+  "QUERY_PASSED"
+
+# ── Dialogue & Rail Flows ───────────────────────────────────────────────────
+define flow greeting
+  user express greeting
+  $is_blocked = True
+  $rail_status = "DIALOG"
+  $block_reason = "GREETING"
+  bot express greeting
+
+define flow bot identity
+  user ask bot identity
+  $is_blocked = True
+  $rail_status = "DIALOG"
+  $block_reason = "BOT_IDENTITY"
+  bot express identity
+
+define flow gratitude
+  user express gratitude
+  $is_blocked = True
+  $rail_status = "DIALOG"
+  $block_reason = "GRATITUDE"
+  bot express gratitude response
+
+define flow goodbye
+  user express goodbye
+  $is_blocked = True
+  $rail_status = "DIALOG"
+  $block_reason = "GOODBYE"
+  bot express goodbye
+
+define flow useless questions
+  user ask useless question
+  $is_blocked = True
+  $rail_status = "BLOCKED"
+  $block_reason = "USELESS_QUESTION"
+  bot refuse useless question
+
+define flow gibberish
+  user express gibberish
+  $is_blocked = True
+  $rail_status = "BLOCKED"
+  $block_reason = "GIBBERISH"
+  bot respond to gibberish
+
+define flow spam
+  user express spam
+  $is_blocked = True
+  $rail_status = "BLOCKED"
+  $block_reason = "SPAM"
+  bot respond to gibberish
+
+define flow off topic
+  user ask off topic
+  $is_blocked = True
+  $rail_status = "BLOCKED"
+  $block_reason = "OFF_TOPIC"
+  bot refuse off topic
+
+define flow pass lithography question
+  user ask lithography question
+  $is_blocked = False
+  $rail_status = "PASSED"
+  $block_reason = "NONE"
+  bot query passed
