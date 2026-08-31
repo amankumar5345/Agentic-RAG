@@ -227,5 +227,4 @@ streamlit run src/ui/app.py
 | **Faithfulness** | $\ge 0.50$ | Verifies output is strictly grounded in retrieved documentation |
 | **Answer Relevancy** | $\ge 0.50$ | Evaluates answer completeness relative to user intent |
 | **Contextual Relevancy** | $\ge 0.50$ | Assesses precision and relevance of retrieved text chunks |
-#   A g e n t i c - R A G  
- 
+#
