@@ -1,0 +1,415 @@
+<!-- ============================ COVER ============================ -->
+<div class="cover">
+  <div class="kicker">Project Handbook &middot; Technical Deep Dive &middot; Interview Guide</div>
+  <h1>Litho Agentic RAG</h1>
+  <div class="rule"></div>
+  <h2>Guarded multi-agent retrieval, citation enforcement,<br>Unreal Engine geometry dispatch, and a reproducible<br>evaluation harness for semiconductor cleanroom operations</h2>
+
+  <div class="chips">
+    <span class="chip">LangGraph</span>
+    <span class="chip">NeMo Guardrails</span>
+    <span class="chip">Hybrid RAG + FlashRank</span>
+    <span class="chip">Groq gpt-oss</span>
+    <span class="chip">Chroma + bge-m3</span>
+    <span class="chip">Unreal Engine 5</span>
+    <span class="chip">Streamlit</span>
+    <span class="chip">Evaluation harness</span>
+  </div>
+
+  <div class="meta" style="margin-top:14mm">
+    <div><b>Document type:</b> project purpose, architecture, workflow, evaluation, operations and interview preparation</div>
+    <div><b>Repository:</b> github.com/amankumar5345/Agentic-RAG</div>
+    <div><b>Snapshot:</b> commit <span class="mono" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#e6f3f7">b45258b</span> &middot; 26 November 2026</div>
+    <div><b>Audience:</b> the project author, reviewers, and technical interviewers</div>
+  </div>
+
+  <div class="foot">
+    Every number in this handbook is either read from the repository or explicitly marked
+    <b>MOCK</b> / <b>NOT YET RUN</b>. No mock result is presented as a benchmark result.
+  </div>
+</div>
+
+<!-- ============================ TOC ============================ -->
+<h1 class="sec nobreak" style="page-break-before:avoid">Contents</h1>
+<div class="toc">
+  <div class="part">Part I &mdash; Foundations</div>
+  <ol>
+    <li><span>1. Executive summary</span><span>What the system is and where it stands</span></li>
+    <li><span>2. The problem it solves</span><span>Why cleanroom operations need this</span></li>
+    <li><span>3. Design goals and non-goals</span><span>Scope discipline</span></li>
+    <li><span>4. System at a glance</span><span>Architecture and request lifecycle</span></li>
+    <li><span>5. Technology choices and trade-offs</span><span>Why each component exists</span></li>
+  </ol>
+
+  <div class="part">Part II &mdash; How it works</div>
+  <ol start="6">
+    <li><span>6. Repository map</span><span>Where every responsibility lives</span></li>
+    <li><span>7. Ingestion and the knowledge base</span><span>PDF to Chroma</span></li>
+    <li><span>8. The retrieval stack</span><span>Dense, BM25, hybrid, rerank</span></li>
+    <li><span>9. The LangGraph agent</span><span>State, nodes, routing, budgets</span></li>
+    <li><span>10. Guardrails</span><span>Policy before reasoning</span></li>
+    <li><span>11. Geometry bridge and Unreal Engine</span><span>From words to 3D</span></li>
+    <li><span>12. Citations and abstention</span><span>Making answers auditable</span></li>
+    <li><span>13. Supporting services</span><span>Audio, speech, translation, acknowledgement</span></li>
+    <li><span>14. The Streamlit application</span><span>Seven pages, two modes</span></li>
+    <li><span>15. Configuration, secrets and cost</span><span>Environment and pricing</span></li>
+    <li><span>16. Deployment</span><span>Local, Docker, Cloud</span></li>
+  </ol>
+
+  <div class="part">Part III &mdash; Evaluation</div>
+  <ol start="17">
+    <li><span>17. Evaluation philosophy</span><span>What is measured and why</span></li>
+    <li><span>18. LithoBench</span><span>Dataset design and human review</span></li>
+    <li><span>19. The nine arms</span><span>A0 to A8 ablations</span></li>
+    <li><span>20. Runner, metrics and statistics</span><span>From answers to evidence</span></li>
+    <li><span>21. Judge design and validation</span><span>Different family, human labels</span></li>
+    <li><span>22. Guardrail evaluation</span><span>G0 to G3 and A5</span></li>
+    <li><span>23. Geometry evaluation</span><span>Schema, exactness, replay</span></li>
+    <li><span>24. Injection evaluation</span><span>Attack types and D0 to D3</span></li>
+    <li><span>25. End-to-end latency</span><span>Fake versus real Unreal</span></li>
+    <li><span>26. Reporting, gates and CI</span><span>No hand-typed numbers</span></li>
+    <li><span>27. Current status</span><span>What is real, mock or blocked</span></li>
+    <li><span>28. Limitations and threats to validity</span><span>What not to claim</span></li>
+    <li><span>29. Roadmap to a finished benchmark</span><span>Definition of done</span></li>
+  </ol>
+
+  <div class="part">Part IV &mdash; Interview preparation</div>
+  <ol start="30">
+    <li><span>30. How to present the project</span><span>Pitch, deep dive, whiteboard</span></li>
+    <li><span>31. Interview questions and detailed answers</span><span>108 questions across nine domains</span></li>
+    <li><span>32. Glossary</span><span>Terms used in this project</span></li>
+    <li><span>33. Appendix</span><span>Commands, file index, result schema</span></li>
+  </ol>
+</div>
+
+
+
+<div class="part-divider">
+  <div class="pd-kicker">Part I</div>
+  <div class="pd-title">Foundations</div>
+  <div class="pd-sub">Purpose, scope and the shape of the system</div>
+</div>
+
+<div class="note">
+  <span class="label teal">How to read this</span>
+  Sections 1&ndash;29 explain the system and its evaluation design. Section 30 gives you the
+  narrative to use in an interview. Section 31 contains the question bank. If you only have
+  ten minutes before an interview, read Sections 1, 4, 19 and 30.
+</div>
+
+<!-- ============================ 1. EXEC SUMMARY ============================ -->
+<h1 class="sec"><span class="num">1</span>Executive summary</h1>
+
+<p><strong>Litho Agentic RAG</strong> is a guarded, multi-agent AI system for semiconductor
+photolithography and cleanroom operations. It answers technical questions from an approved
+document corpus, refuses unsafe or off-domain requests, cites the evidence it used, dispatches
+3D geometry into Unreal Engine 5, and provides a reproducible harness for measuring whether
+any of that actually works.</p>
+
+<p>The project is deliberately three systems in one repository:</p>
+
+<table>
+  <thead><tr><th style="width:22%">Layer</th><th>Responsibility</th><th style="width:24%">Primary code</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Operations assistant</strong></td><td>Voice or text questions about lithography processes, cleanroom safety, equipment maintenance and simulation commands, answered from local documentation.</td><td><code>src/core/</code>, <code>src/services/</code></td></tr>
+    <tr><td><strong>Agentic control plane</strong></td><td>Guardrail decision, role routing, tool calling, retrieval budget, citation enforcement and geometry dispatch to Unreal.</td><td><code>src/core/graph.py</code>, <code>citations.py</code>, <code>tools.py</code></td></tr>
+    <tr><td><strong>Evaluation lab</strong></td><td>A labelled dataset, nine RAG arms, five guardrail systems, geometry and injection suites, a judge-agreement protocol, statistical summaries and CI gates.</td><td><code>bench/</code>, <code>litho_eval/</code>, <code>scripts/</code></td></tr>
+  </tbody>
+</table>
+
+<h2>At a glance</h2>
+<table class="compact">
+  <tbody>
+    <tr><td style="width:24%"><strong>Domain</strong></td><td>Photolithography, wafer processing, cleanroom safety, equipment maintenance, 3D process visualisation</td></tr>
+    <tr><td><strong>Users</strong></td><td>Cleanroom engineers, researchers, students and lab operators at NIT Rourkela</td></tr>
+    <tr><td><strong>Inputs</strong></td><td>Text, browser microphone, and WAV files written by an Unreal Engine microphone manager</td></tr>
+    <tr><td><strong>Outputs</strong></td><td>Grounded answers with <code>[Cn]</code> citations, refusals, tool actions, and JSON geometry packets rendered by Unreal</td></tr>
+    <tr><td><strong>Orchestration</strong></td><td>LangGraph state machine; NeMo Guardrails; LangChain tools</td></tr>
+    <tr><td><strong>Models</strong></td><td>Groq <code>openai/gpt-oss-120b</code> (orchestrator), <code>openai/gpt-oss-20b</code> (router default), judge <code>groq/qwen/qwen3.8-27b</code> for evaluation</td></tr>
+    <tr><td><strong>Retrieval</strong></td><td>ChromaDB + Ollama <code>bge-m3</code> dense vectors; BM25; reciprocal rank fusion; FlashRank TinyBERT reranking</td></tr>
+    <tr><td><strong>Corpus</strong></td><td>60 source PDFs parsed to Markdown; about 3.4 MB of text in <code>our_database/all_contents.txt</code></td></tr>
+    <tr><td><strong>Evaluation</strong></td><td>LithoBench (QA, adversarial, geometry, router), 40 injection cases, A0&ndash;A8 arms, G0&ndash;G3 guardrails</td></tr>
+    <tr><td><strong>UI</strong></td><td>Seven-page Streamlit application with demo and live modes</td></tr>
+    <tr><td><strong>Tests</strong></td><td>179 offline tests, Ruff lint, GitHub Actions CI</td></tr>
+    <tr><td><strong>Deployment</strong></td><td>Local Python, Docker, Streamlit Community Cloud</td></tr>
+  </tbody>
+</table>
+
+<div class="honest">
+  <span class="label red">Status &mdash; read before quoting anything</span>
+  The <strong>software</strong> is complete and tested. The <strong>benchmark</strong> is not yet a
+  published result. At this snapshot the dataset contains <strong>236 drafts and 0 verified cases</strong>
+  (target: 370), the 40 injection cases are also unreviewed, and every file under <code>results/</code>
+  is either <strong>MOCK</strong>, <strong>blocked</strong>, or labelled <code>ue_mode: fake</code>.
+  Real arm, guardrail, geometry, injection, citation and latency runs require human verification
+  plus Ollama and API access. This handbook therefore teaches the <em>design</em> and the
+  <em>evaluation protocol</em>, not a score.
+</div>
+
+<h2>What is genuinely strong about this project</h2>
+<ul>
+  <li><strong>Safety is architectural, not a prompt.</strong> A guardrail node runs before routing; a retrieval budget caps tool loops; geometry sizes are validated server-side; citations are checked after generation and answers abstain when unsupported.</li>
+  <li><strong>The evaluation is treated as a product.</strong> Arms isolate one design decision at a time, datasets have origins and human-review rules, results carry config and dataset hashes, and README numbers are generated from JSON rather than typed by hand.</li>
+  <li><strong>Honesty is enforced in code.</strong> <code>claim_check.py</code> fails on unbacked numeric claims; <code>build_readme.py</code> renders <code>NOT YET RUN</code> rather than inventing results; fake Unreal latencies carry <code>ue_mode: fake</code>.</li>
+  <li><strong>It is operable.</strong> Demo mode needs no keys; live mode degrades gracefully; a rate limiter and prompt-logging gate protect a public deployment; Docker and Cloud instructions exist.</li>
+</ul>
+
+<h2>What it is not</h2>
+<p>It is not a certified safety system, not a replacement for SOPs, not a real-time equipment
+controller, and not a general-purpose cleanroom benchmark. Section 28 lists the limitations in
+detail; those limitations are part of the engineering story, not an afterthought.</p>
+
+<!-- ============================ 2. PROBLEM ============================ -->
+<h1 class="sec"><span class="num">2</span>The problem it solves</h1>
+
+<h2>2.1 The operational reality</h2>
+<p>A semiconductor cleanroom is a document-heavy, safety-critical environment. An engineer may
+need the maximum permitted laser exposure for a procedure, the lockout sequence for a vacuum
+pump, the PPE requirement for a specific solvent, or the correct way to describe a wafer pattern
+to a simulation tool. That knowledge is spread across vendor manuals, regulatory guidelines,
+internal SOPs, academic papers and training slides. Documents are long, multi-column, figure-heavy
+and inconsistent in terminology.</p>
+
+<p>Three failure modes are common:</p>
+<ol>
+  <li><strong>Search is lexical.</strong> A keyword search for &ldquo;interlock&rdquo; misses a passage that says &ldquo;protective shut-off&rdquo;. Engineers waste time and may miss the governing document.</li>
+  <li><strong>Generic chatbots hallucinate.</strong> A general model will answer confidently from parametric memory, with no provenance and no awareness of site-specific rules. In a cleanroom, a plausible but wrong procedure is worse than no answer.</li>
+  <li><strong>Knowledge does not reach action.</strong> Even a correct answer about a pattern does not draw it. Simulation, training and demonstration require the answer to become a structured command that a 3D engine can execute.</li>
+</ol>
+
+<h2>2.2 Why a multi-agent RAG system</h2>
+<p>A single retrieval-augmented prompt solves only the first layer. This project adds the layers
+that a real deployment needs:</p>
+
+<table>
+  <thead><tr><th style="width:26%">Requirement</th><th>Mechanism</th></tr></thead>
+  <tbody>
+    <tr><td>Do not engage with unsafe or off-domain input</td><td>NeMo Guardrails classifies the query before any model reasoning and returns a policy refusal or a scripted dialogue.</td></tr>
+    <tr><td>Route work to the right behaviour</td><td>A structured-output classifier selects Safety, Maintenance, Draw or Chatbot, which shapes the orchestration context.</td></tr>
+    <tr><td>Ground every claim</td><td>Hybrid retrieval, reranking, <code>[Cn]</code> chunk labels, a citation rule, a validator, one repair attempt and abstention.</td></tr>
+    <tr><td>Prevent runaway tool use</td><td>A guarded tool node enforces a maximum number of retrieval calls per question.</td></tr>
+    <tr><td>Turn language into action safely</td><td><code>spawn_geometry</code> validates shape, size and angle; refuses to guess missing dimensions; writes an atomic JSON packet for Unreal.</td></tr>
+    <tr><td>Prove it works</td><td>LithoBench, nine arms, guardrail/injection/geometry suites, confidence intervals, judge agreement and CI gates.</td></tr>
+  </tbody>
+</table>
+
+<h2>2.3 Why Unreal Engine</h2>
+<p>Unreal is used as a <em>spatial output device</em>, not as a game. A cleanroom trainee can say
+&ldquo;draw a 200&nbsp;mm square&rdquo; and see the geometry appear in a 3D lithography scene. The bridge is
+deliberately file-based and one-directional: the Python agent writes a JSON packet; Unreal polls
+the file on tick and renders it. This keeps the AI process and the simulation process decoupled,
+avoids a fragile network protocol, and lets either side restart independently.</p>
+
+<h2>2.4 Why the evaluation layer matters more than the demo</h2>
+<p>It is easy to build a demo that answers three curated questions. It is hard to show that an
+agent is <em>better</em> than a simpler baseline, that its safety layer reduces attack success
+without over-refusing benign queries, that its citations are supported, and that its geometry
+commands are correct. The repository therefore treats evaluation as a first-class subsystem:
+a labelled dataset, ablations, judge validation, statistical summaries and generated reporting.</p>
+
+<!-- ============================ 3. GOALS ============================ -->
+<h1 class="sec"><span class="num">3</span>Design goals and non-goals</h1>
+
+<h2>3.1 Goals</h2>
+<table>
+  <thead><tr><th style="width:24%">Goal</th><th>What it means in practice</th><th style="width:26%">Where it is enforced</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Grounded</strong></td><td>Answers come from retrieved documents, not parametric memory; unsupported answers abstain.</td><td><code>load_prompt</code>, citation rule, <code>enforce_citations</code></td></tr>
+    <tr><td><strong>Guarded</strong></td><td>Unsafe, off-topic and jailbreak inputs are refused before orchestration.</td><td>NeMo rails, <code>guardrail_node</code></td></tr>
+    <tr><td><strong>Auditable</strong></td><td>Every factual claim can be traced to a document and section; results carry hashes and a git commit.</td><td><code>src/core/citations.py</code>, <code>litho_eval/runner.py</code></td></tr>
+    <tr><td><strong>Actionable</strong></td><td>Drawing requests become validated commands rendered in Unreal.</td><td><code>spawn_geometry</code>, <code>geometry.py</code></td></tr>
+    <tr><td><strong>Measurable</strong></td><td>Ablations, confidence intervals, judge agreement, regression gates.</td><td><code>litho_eval/</code>, <code>scripts/</code></td></tr>
+    <tr><td><strong>Operable</strong></td><td>Demo mode without secrets, live mode with clear degradation, rate limits, Docker.</td><td><code>src/ui/state.py</code>, <code>Dockerfile</code></td></tr>
+    <tr><td><strong>Honest</strong></td><td>No fabricated numbers; mock and fake outputs are labelled and excluded from claims.</td><td><code>build_readme.py</code>, <code>claim_check.py</code></td></tr>
+  </tbody>
+</table>
+
+<h2>3.2 Non-goals</h2>
+<ul>
+  <li><strong>Not a safety certification.</strong> The system can refuse and cite, but it does not replace trained judgement, site SOPs or a safety officer.</li>
+  <li><strong>Not a real-time controller.</strong> There is no PLC integration, no closed-loop control of lithography equipment, and no actuation beyond writing a geometry file.</li>
+  <li><strong>Not a general cleanroom benchmark.</strong> One corpus and one generator family are evaluated; conclusions do not automatically transfer.</li>
+  <li><strong>Not a production multi-tenant service.</strong> Authentication, per-user isolation and durable audit storage are out of scope for this version.</li>
+  <li><strong>Not a substitute for human labelling.</strong> The dataset explicitly requires human verification; the pipeline refuses to evaluate drafts.</li>
+</ul>
+
+<h2>3.3 Design principles</h2>
+<ol>
+  <li><strong>Separate policy from reasoning.</strong> Guardrails decide whether the system should engage; the LLM decides what to say only after that decision.</li>
+  <li><strong>Least-privilege tools.</strong> The model can retrieve and draw, nothing else. Drawing has its own validation and a provenance gate in the security evaluation.</li>
+  <li><strong>Fail closed on evidence.</strong> If citations cannot be validated after one repair, the system abstains and shows the closest sources.</li>
+  <li><strong>Deterministic evaluation.</strong> Temperature zero, fixed seeds, a content-addressed cache, and hashes of the dataset, config and prompt.</li>
+  <li><strong>Demo first, live optional.</strong> A reviewer can inspect every page without keys, Ollama or Unreal, and the banner always states the mode.</li>
+  <li><strong>No secrets in the repository.</strong> <code>.env</code> and Streamlit secrets are ignored; only <code>.example</code> templates are committed.</li>
+</ol>
+
+<!-- ============================ 4. SYSTEM AT A GLANCE ============================ -->
+<h1 class="sec"><span class="num">4</span>System at a glance</h1>
+
+<div class="diagram">
+<svg viewBox="0 0 980 560" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#0f766e"/>
+    </marker>
+  </defs>
+
+  <!-- inputs -->
+  <rect class="svg-box" x="55" y="16" width="200" height="52" rx="7"/>
+  <text class="svg-t-b" x="155" y="38" text-anchor="middle">Text chat</text>
+  <text class="svg-t-s" x="155" y="55" text-anchor="middle">Streamlit chat input</text>
+
+  <rect class="svg-box" x="300" y="16" width="240" height="52" rx="7"/>
+  <text class="svg-t-b" x="420" y="38" text-anchor="middle">Voice / Unreal microphone</text>
+  <text class="svg-t-s" x="420" y="55" text-anchor="middle">browser mic or WAV watcher</text>
+
+  <rect class="svg-box" x="585" y="16" width="220" height="52" rx="7"/>
+  <text class="svg-t-b" x="695" y="38" text-anchor="middle">Unreal Engine 5</text>
+  <text class="svg-t-s" x="695" y="55" text-anchor="middle">writes mic WAV, polls mailbox</text>
+
+  <!-- streamlit -->
+  <rect class="svg-box-navy" x="160" y="108" width="660" height="56" rx="8"/>
+  <text class="svg-t-w" x="490" y="132" text-anchor="middle">Streamlit application &mdash; 7 pages, demo / live mode</text>
+  <text class="svg-t-s" x="490" y="150" text-anchor="middle" fill="#dcebf5">Assistant &middot; Benchmark &middot; Dataset &middot; Geometry &middot; Safety &middot; Playground &middot; Methodology</text>
+
+  <!-- guardrail + router + orchestrator -->
+  <rect class="svg-box-teal" x="70" y="212" width="230" height="66" rx="7"/>
+  <text class="svg-t-b" x="185" y="236" text-anchor="middle">NeMo Guardrails</text>
+  <text class="svg-t-s" x="185" y="253" text-anchor="middle">pass / dialogue / block</text>
+  <text class="svg-t-s" x="185" y="268" text-anchor="middle">policy before reasoning</text>
+
+  <rect class="svg-box" x="360" y="212" width="220" height="66" rx="7"/>
+  <text class="svg-t-b" x="470" y="236" text-anchor="middle">Role router</text>
+  <text class="svg-t-s" x="470" y="253" text-anchor="middle">structured output</text>
+  <text class="svg-t-s" x="470" y="268" text-anchor="middle">Safety / Maintenance / Draw / Chat</text>
+
+  <rect class="svg-box-navy" x="650" y="212" width="260" height="66" rx="7"/>
+  <text class="svg-t-w" x="780" y="236" text-anchor="middle">Orchestrator</text>
+  <text class="svg-t-s" x="780" y="253" text-anchor="middle" fill="#c7dceb">gpt-oss-120b, tool calling</text>
+  <text class="svg-t-s" x="780" y="268" text-anchor="middle" fill="#c7dceb">decides answer / retrieve / draw</text>
+
+  <!-- tools -->
+  <rect class="svg-box" x="70" y="330" width="250" height="62" rx="7"/>
+  <text class="svg-t-b" x="195" y="353" text-anchor="middle">load_prompt tool</text>
+  <text class="svg-t-s" x="195" y="370" text-anchor="middle">retrieval + prompt packaging</text>
+  <text class="svg-t-s" x="195" y="384" text-anchor="middle">citation rule injected</text>
+
+  <rect class="svg-box" x="360" y="330" width="220" height="62" rx="7"/>
+  <text class="svg-t-b" x="470" y="353" text-anchor="middle">spawn_geometry tool</text>
+  <text class="svg-t-s" x="470" y="370" text-anchor="middle">validate shape / size / angle</text>
+  <text class="svg-t-s" x="470" y="384" text-anchor="middle">atomic JSON packet</text>
+
+  <rect class="svg-box-grey" x="650" y="330" width="260" height="62" rx="7"/>
+  <text class="svg-t-b" x="780" y="353" text-anchor="middle">DeepEval judge (optional)</text>
+  <text class="svg-t-s" x="780" y="370" text-anchor="middle">faithfulness, relevancy, context</text>
+  <text class="svg-t-s" x="780" y="384" text-anchor="middle">runtime telemetry, not benchmark</text>
+
+  <!-- stores -->
+  <rect class="svg-box" x="70" y="446" width="250" height="70" rx="7"/>
+  <text class="svg-t-b" x="195" y="469" text-anchor="middle">Chroma + bge-m3 + FlashRank</text>
+  <text class="svg-t-s" x="195" y="486" text-anchor="middle">60 PDFs &rarr; Markdown &rarr; chunks</text>
+  <text class="svg-t-s" x="195" y="501" text-anchor="middle">dense + BM25 + rerank</text>
+
+  <rect class="svg-box" x="360" y="446" width="220" height="70" rx="7"/>
+  <text class="svg-t-b" x="470" y="469" text-anchor="middle">unreal_mailbox.json</text>
+  <text class="svg-t-s" x="470" y="486" text-anchor="middle">file bridge</text>
+  <text class="svg-t-s" x="470" y="501" text-anchor="middle">atomic replace on write</text>
+
+  <rect class="svg-box-teal" x="650" y="446" width="260" height="70" rx="7"/>
+  <text class="svg-t-b" x="780" y="469" text-anchor="middle">UE5 viewport</text>
+  <text class="svg-t-s" x="780" y="486" text-anchor="middle">renders splines and meshes</text>
+  <text class="svg-t-s" x="780" y="501" text-anchor="middle">optional unreal_ack.json</text>
+
+  <!-- arrows -->
+  <line class="svg-line" x1="155" y1="68" x2="255" y2="108" marker-end="url(#arrow)"/>
+  <line class="svg-line" x1="420" y1="68" x2="430" y2="108" marker-end="url(#arrow)"/>
+  <line class="svg-line" x1="695" y1="68" x2="640" y2="108" marker-end="url(#arrow)"/>
+  <line class="svg-line" x1="330" y1="164" x2="220" y2="212" marker-end="url(#arrow)"/>
+  <line class="svg-line" x1="470" y1="164" x2="470" y2="212" marker-end="url(#arrow)"/>
+  <line class="svg-line" x1="500" y1="164" x2="735" y2="212" marker-end="url(#arrow)"/>
+  <line class="svg-line" x1="300" y1="245" x2="360" y2="245" marker-end="url(#arrow)"/>
+  <line class="svg-line" x1="580" y1="245" x2="650" y2="245" marker-end="url(#arrow)"/>
+  <line class="svg-line-teal" x1="740" y1="278" x2="560" y2="330" marker-end="url(#arrow-teal)"/>
+  <line class="svg-line-teal" x1="700" y1="278" x2="240" y2="330" marker-end="url(#arrow-teal)"/>
+  <line class="svg-line" x1="195" y1="392" x2="195" y2="446" marker-end="url(#arrow)"/>
+  <line class="svg-line" x1="470" y1="392" x2="470" y2="446" marker-end="url(#arrow)"/>
+  <line class="svg-line" x1="600" y1="481" x2="650" y2="481" marker-end="url(#arrow)"/>
+  <path class="svg-line" d="M910 481 L940 481 L940 245 L910 245" marker-end="url(#arrow)"/>
+</svg>
+</div>
+<div class="caption">Figure 1 &mdash; Runtime context. Policy runs before reasoning; tools are limited to retrieval and geometry; Unreal is a file-bridged output device.</div>
+
+<h2>4.1 A request, end to end</h2>
+<ol>
+  <li><strong>Input arrives.</strong> A typed message, a browser recording, or a WAV written by Unreal&rsquo;s microphone manager. Audio is transcribed by Google Speech Recognition.</li>
+  <li><strong>The guardrail runs.</strong> NeMo returns <code>QUERY_PASSED</code>, a <code>DIALOG:</code> reply, or <code>[RAIL_BLOCKED]</code>. Blocked and dialogue turns short-circuit to the end of the graph.</li>
+  <li><strong>The role is chosen.</strong> A structured-output classifier assigns Safety, Maintenance, Draw or Chatbot. The role is carried in state.</li>
+  <li><strong>The orchestrator reasons.</strong> It either answers directly or emits a tool call.</li>
+  <li><strong>Retrieval.</strong> <code>load_prompt</code> gets chunks labelled <code>[C1]..[Cn]</code>, formats them with document and section metadata, injects the citation rule and returns a prompt to the orchestrator.</li>
+  <li><strong>The tool budget is enforced.</strong> A guarded tool node counts retrieval calls and refuses calls beyond the configured maximum.</li>
+  <li><strong>The orchestrator synthesises.</strong> It answers from the returned context, or calls <code>spawn_geometry</code> when the user asked for a shape.</li>
+  <li><strong>Geometry is validated.</strong> Missing size returns <code>needs_clarification</code>; invalid commands return structured errors; only valid commands are written atomically to the mailbox.</li>
+  <li><strong>Unreal renders.</strong> Its blueprint polls the mailbox on tick, builds spline/mesh actors, and optionally writes <code>unreal_ack.json</code> so the Python side can measure true end-to-end latency.</li>
+  <li><strong>Output is post-processed.</strong> Optional Hindi translation and text-to-speech, plus a trace panel in the UI showing role, retrieval calls, chunks, citations and timings.</li>
+</ol>
+
+<h2>4.2 Two planes: runtime and evaluation</h2>
+<p>The same agent code is used for both. The evaluation runner imports the production graph builder,
+supplies a strict judging model and a fixed dataset, and records every output. There is no separate
+&ldquo;demo agent&rdquo; whose numbers are easier to improve. This is important in interviews: the
+evaluation measures the deployed graph, not a simplified replica.</p>
+
+<table>
+  <thead><tr><th style="width:22%">Plane</th><th>Purpose</th><th>Entry points</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Runtime</strong></td><td>Serve a user, answer or draw, show evidence.</td><td><code>streamlit run src/ui/app.py</code>; <code>src/core/graph.py</code></td></tr>
+    <tr><td><strong>Evaluation</strong></td><td>Measure the same agent on verified cases, compare arms, gate regressions.</td><td><code>python -m litho_eval.run</code>; <code>scripts/run_all_arms.sh</code></td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ 5. TECH ============================ -->
+<h1 class="sec"><span class="num">5</span>Technology choices and trade-offs</h1>
+
+<p>The stack is not a list of fashionable tools; each choice removes a specific failure mode.
+The table below is the one to use when an interviewer asks &ldquo;why this and not that?&rdquo;.</p>
+
+<table class="compact">
+  <thead><tr><th style="width:17%">Choice</th><th style="width:20%">Role</th><th>Reason</th><th style="width:20%">Alternative considered</th></tr></thead>
+  <tbody>
+    <tr><td><strong>LangGraph</strong></td><td>Agent state machine</td><td>Explicit nodes and conditional edges make guardrail, router and tool loops inspectable and testable. Native streaming and state persistence.</td><td>A hand-written while loop; harder to test and to visualise.</td></tr>
+    <tr><td><strong>NeMo Guardrails</strong></td><td>Input policy</td><td>Colang flows encode refusal, dialogue and pass-through rules separately from the LLM prompt. Deterministic markers simplify routing.</td><td>Prompt-only moderation; cheaper, but easier to jailbreak and harder to audit.</td></tr>
+    <tr><td><strong>ChromaDB</strong></td><td>Vector store</td><td>Embedded, persistent, zero-ops, good enough for a single-corpus research system.</td><td>FAISS (no metadata persistence), pgvector (operational overhead).</td></tr>
+    <tr><td><strong>Ollama bge-m3</strong></td><td>Embeddings</td><td>Local, multilingual, no per-token embedding cost, keeps documents on-premise.</td><td>OpenAI embeddings (privacy and cost), smaller MiniLM (weaker multilingual recall).</td></tr>
+    <tr><td><strong>BM25 + RRF</strong></td><td>Lexical signal</td><td>Catches exact terms, model numbers and acronyms that dense embeddings blur. RRF needs no score calibration.</td><td>Dense only; simpler but weaker on rare tokens.</td></tr>
+    <tr><td><strong>FlashRank TinyBERT</strong></td><td>Cross-encoder rerank</td><td>CPU-friendly, fast, 25 candidates to 7, no external API call.</td><td>Large cross-encoder (better but slower), LLM reranking (expensive).</td></tr>
+    <tr><td><strong>Groq gpt-oss</strong></td><td>Generation and routing</td><td>Very low latency and low list price; OpenAI-compatible through LiteLLM/LangChain.</td><td>GPT-4-class APIs (higher cost/latency), local 7B (weaker tool use).</td></tr>
+    <tr><td><strong>DeepEval + DeepSeek judge</strong></td><td>Online telemetry</td><td>Standard RAG metrics with a custom judge adapter; scores shown per answer in the UI.</td><td>Hand evaluation only; not scalable per answer.</td></tr>
+    <tr><td><strong>Streamlit</strong></td><td>UI and demo</td><td>Fastest path to a multi-page, data-rich app that runs locally and on Community Cloud.</td><td>React/FastAPI (more control, much more code).</td></tr>
+    <tr><td><strong>Unreal Engine 5</strong></td><td>3D output</td><td>High-fidelity visualisation and a realistic training environment; file bridge avoids tight coupling.</td><td>WebGL/Three.js (lighter, less realistic).</td></tr>
+    <tr><td><strong>IBM Docling</strong></td><td>PDF parsing</td><td>Handles multi-column papers and tables better than naive text extraction.</td><td>PyPDF2 (fast but layout-blind).</td></tr>
+    <tr><td><strong>pytest + Ruff + Actions</strong></td><td>Quality gate</td><td>Offline tests with injected fakes; lint and mock-arm smoke tests catch regressions without keys.</td><td>Manual testing; not repeatable.</td></tr>
+  </tbody>
+</table>
+
+<h2>5.1 Models used where</h2>
+<table>
+  <thead><tr><th style="width:26%">Role</th><th>Production default</th><th>Evaluation default</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Orchestrator / generator</td><td><code>openai/gpt-oss-120b</code></td><td><code>openai/gpt-oss-120b</code></td><td>Tool calling and synthesis.</td></tr>
+    <tr><td>Intent router</td><td><code>openai/gpt-oss-20b</code></td><td>same as generator in arm runs</td><td>The arm runner holds the router constant at the generator model to isolate retrieval and agent factors.</td></tr>
+    <tr><td>Evaluation judge</td><td><code>deepseek/deepseek-chat</code> (online telemetry)</td><td><code>groq/qwen/qwen3.8-27b</code></td><td>Judge must be a different model family from the generator. DeepSeek is the product default but has no balance in this environment.</td></tr>
+    <tr><td>Embeddings</td><td><code>bge-m3:latest</code></td><td><code>bge-m3:latest</code></td><td>Local Ollama; A4 also downloads FlashRank.</td></tr>
+    <tr><td>Reranker</td><td><code>ms-marco-TinyBERT-L-2-v2</code></td><td>same</td><td>25 candidates &rarr; 7 final chunks.</td></tr>
+  </tbody>
+</table>
+
+<div class="tip">
+  <span class="label teal">Interview angle</span>
+  The strongest answer is not &ldquo;I used LangGraph&rdquo;. It is: &ldquo;I needed an explicit,
+  testable policy boundary before the model reasons, and a bounded tool loop, so I chose a graph
+  with a guardrail node and a guarded tool node. LangGraph made those boundaries first-class and
+  let me ablate them in A5/A6/A7.&rdquo;
+</div>

@@ -6,6 +6,10 @@ Project **Litho Agentic RAG** is an active, multi-agent AI system developed for 
 
 The system connects a **Streamlit / LangGraph AI Brain** with **Unreal Engine (UE)**, providing voice- and text-driven technical document retrieval, cleanroom hazard and safety enforcement, hardware maintenance diagnostics, and real-time CAD geometry dispatching into 3D simulation.
 
+> **Project handbook (PDF):** [docs/Litho_Agentic_RAG_Project_Guide.pdf](docs/Litho_Agentic_RAG_Project_Guide.pdf)
+> covers the purpose, architecture, workflow, evaluation design, deployment and 108 interview
+> questions with detailed answers. Its source is in [docs/guide/](docs/guide/).
+
 ---
 
 ## Architecture Overview
@@ -245,7 +249,7 @@ LANGCHAIN_PROJECT=Project-Litho-Agentic-RAG
 ```
 `.env` is gitignored. `LITHO_MAX_SIZE` is enforced by `src/core/geometry.py`;
 `LITHO_ACK_TIMEOUT_S` is a suggested timeout for `wait_for_ack`; `LITHO_MODE`
-is reserved and is not read yet.
+forces `demo` or `live` and is otherwise inferred from the API keys.
 
 ### 4. Run Checks
 ```bash

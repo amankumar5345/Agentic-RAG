@@ -1,0 +1,871 @@
+<div class="part-divider">
+  <div class="pd-kicker">Part II</div>
+  <div class="pd-title">How it works</div>
+  <div class="pd-sub">From PDF ingestion and retrieval to the agent graph, safety layer, 3D bridge and deployment</div>
+</div>
+
+<!-- ============================ 6. REPO MAP ============================ -->
+<h1 class="sec"><span class="num">6</span>Repository map</h1>
+
+<p>The repository separates runtime, benchmark, evaluation and presentation concerns. A useful
+mental model is: <code>src/</code> is the product, <code>bench/</code> is the data, <code>litho_eval/</code>
+is the measurement instrument, and <code>scripts/</code> is the reporting and CI layer.</p>
+
+<table class="compact">
+  <thead><tr><th style="width:24%">Path</th><th>Responsibility</th><th style="width:28%">Key files</th></tr></thead>
+  <tbody>
+    <tr><td><code>src/core/</code></td><td>Agent graph, retrieval, tools, geometry, citations, traces</td><td><code>graph.py</code>, <code>retriever.py</code>, <code>tools.py</code>, <code>geometry.py</code>, <code>citations.py</code>, <code>trace.py</code></td></tr>
+    <tr><td><code>src/services/</code></td><td>Audio ingestion, speech, translation, TTS, Unreal acknowledgement</td><td><code>audio_service.py</code>, <code>translation.py</code>, <code>tts_service.py</code>, <code>ue_ack.py</code></td></tr>
+    <tr><td><code>src/guardrails/config/</code></td><td>NeMo policy, Colang flows and rail prompts</td><td><code>config.yml</code>, <code>rails.co</code>, <code>prompts.yml</code></td></tr>
+    <tr><td><code>src/ui/</code></td><td>Seven-page Streamlit application, state, loaders, components</td><td><code>app.py</code>, <code>state.py</code>, <code>data.py</code>, <code>pages/</code>, <code>components/</code></td></tr>
+    <tr><td><code>our_database/</code></td><td>Source PDFs, extracted text, Chroma storage, ingestion scripts</td><td><code>all_contents.txt</code>, <code>document_docling.py</code>, <code>load_txt.py</code></td></tr>
+    <tr><td><code>bench/</code></td><td>LithoBench schemas, drafting, review, validation, injection cases</td><td><code>schema.py</code>, <code>draft_cases.py</code>, <code>review.py</code>, <code>validate.py</code>, <code>injection/</code></td></tr>
+    <tr><td><code>litho_eval/</code></td><td>Arms, runner, index, metrics, statistics, domain evaluations</td><td><code>arms.py</code>, <code>runner.py</code>, <code>index.py</code>, <code>metrics.py</code>, <code>guardrails_eval.py</code>, <code>geometry_eval.py</code>, <code>injection.py</code>, <code>citations_eval.py</code></td></tr>
+    <tr><td><code>configs/</code></td><td>Arm definitions, model prices, judge rubric, regression tolerances</td><td><code>arms.yaml</code>, <code>prices.yaml</code>, <code>judge_prompt.md</code>, <code>gate.yaml</code></td></tr>
+    <tr><td><code>scripts/</code></td><td>Arm sweep, README generation, claim checking, gates, judge export, latency</td><td><code>run_all_arms.sh</code>, <code>build_readme.py</code>, <code>claim_check.py</code>, <code>regression_gate.py</code>, <code>measure_e2e.py</code></td></tr>
+    <tr><td><code>results/</code></td><td>Generated evidence files (current files are mock or blocked)</td><td><code>A*.json</code>, <code>guardrails.json</code>, <code>geometry.json</code>, <code>injection.json</code>, <code>citations.json</code></td></tr>
+    <tr><td><code>tests/</code></td><td>179 offline tests with injected fakes</td><td><code>test_graph.py</code>, <code>test_litho_*.py</code>, <code>test_ui_*.py</code></td></tr>
+    <tr><td><code>docs/</code></td><td>Status, reproduction, limitations, corpus sources, demo, ack contract</td><td><code>STATUS.md</code>, <code>REPRODUCE.md</code>, <code>LIMITATIONS.md</code></td></tr>
+    <tr><td><code>tools/</code></td><td>Fake Unreal acknowledgement writer for CI</td><td><code>fake_unreal.py</code></td></tr>
+    <tr><td><code>.github/workflows/</code></td><td>CI: lint, mock arms, tests, README check, claim check</td><td><code>ci.yml</code></td></tr>
+  </tbody>
+</table>
+
+<h2>6.1 The most important files to know in an interview</h2>
+<table class="compact">
+  <thead><tr><th style="width:30%">File</th><th>One-line explanation</th></tr></thead>
+  <tbody>
+    <tr><td><code>src/core/graph.py</code></td><td>Builds the LangGraph state machine, defines the role schema, the guarded tool node and the optional DeepEval judge.</td></tr>
+    <tr><td><code>src/core/retriever.py</code></td><td>Production retriever: Chroma &rarr; FlashRank &rarr; <code>[Cn]</code> chunks &rarr; prompt.</td></tr>
+    <tr><td><code>src/core/tools.py</code></td><td><code>spawn_geometry</code>: validate, clarify, write packet, return structured status.</td></tr>
+    <tr><td><code>src/core/citations.py</code></td><td>Citation rule, claim detection, validator, repair and abstention.</td></tr>
+    <tr><td><code>litho_eval/arms.py</code></td><td>Eight arm implementations plus the A8 citation wrapper.</td></tr>
+    <tr><td><code>litho_eval/runner.py</code></td><td>Runs an arm over verified cases, judges, aggregates, and writes a hashed result file.</td></tr>
+    <tr><td><code>bench/schema.py</code></td><td>Case schemas, targets and split assignment (union-find over passages).</td></tr>
+    <tr><td><code>bench/validate.py</code></td><td>The gate that refuses an incomplete, duplicated, leaked or non-human-reviewed dataset.</td></tr>
+    <tr><td><code>scripts/claim_check.py</code></td><td>Fails if a quantified claim is not backed by a real result file.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ 7. INGESTION ============================ -->
+<h1 class="sec"><span class="num">7</span>Ingestion and the knowledge base</h1>
+
+<h2>7.1 From PDF to searchable text</h2>
+<p>The corpus is 60 PDF documents (regulatory laser-safety guidelines, vendor manuals, SOPs,
+review papers and lecture notes) collected under <code>our_database/database_documents/</code>.
+<code>document_docling.py</code> uses IBM Docling&rsquo;s <code>DocumentConverter</code> to parse
+multi-column layouts and tables into Markdown. Each converted document is appended to
+<code>our_database/all_contents.txt</code> with a <code>--- Source: ... ---</code> separator, so
+provenance survives the conversion. The checked-in text file is about <strong>3.4 MB</strong>.</p>
+
+<h2>7.2 Chunking and indexing</h2>
+<p><code>load_txt.py</code> strips non-printable control characters, splits the text with
+<code>RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)</code>, embeds each chunk
+with Ollama <code>bge-m3:latest</code>, and persists a Chroma collection at
+<code>our_database/chroma_storage/</code>. The evaluation harness reuses the same splitter
+settings in <code>bench/draft_cases.py:split_corpus</code>, so the retrieval index used for
+benchmarking matches the production chunking.</p>
+
+<table>
+  <thead><tr><th style="width:30%">Parameter</th><th>Value</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>Chunk size</td><td>1000 characters</td><td>Long enough for a procedural step, short enough for precise citations.</td></tr>
+    <tr><td>Overlap</td><td>150 characters</td><td>Prevents a sentence or table row from being cut in half at a boundary.</td></tr>
+    <tr><td>Embedding model</td><td><code>bge-m3:latest</code></td><td>Strong multilingual retrieval, runs locally through Ollama, no per-token cost.</td></tr>
+    <tr><td>Vector store</td><td>Chroma persistent collection</td><td>Embedded, zero-ops, metadata travels with each chunk.</td></tr>
+    <tr><td>Chunk metadata</td><td><code>id</code>, <code>doc</code>, <code>section</code>, <code>char_start</code>, <code>char_end</code></td><td>Enables source display, citation validation and dataset gold offsets.</td></tr>
+  </tbody>
+</table>
+
+<div class="diagram">
+<svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a2" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect class="svg-box" x="20" y="70" width="150" height="80" rx="7"/>
+  <text class="svg-t-b" x="95" y="98" text-anchor="middle">60 PDFs</text>
+  <text class="svg-t-s" x="95" y="116" text-anchor="middle">manuals, SOPs, papers</text>
+  <text class="svg-t-s" x="95" y="132" text-anchor="middle">multi-column layouts</text>
+
+  <rect class="svg-box-teal" x="205" y="70" width="160" height="80" rx="7"/>
+  <text class="svg-t-b" x="285" y="98" text-anchor="middle">Docling</text>
+  <text class="svg-t-s" x="285" y="116" text-anchor="middle">PDF &rarr; Markdown</text>
+  <text class="svg-t-s" x="285" y="132" text-anchor="middle">tables preserved</text>
+
+  <rect class="svg-box" x="400" y="70" width="170" height="80" rx="7"/>
+  <text class="svg-t-b" x="485" y="98" text-anchor="middle">all_contents.txt</text>
+  <text class="svg-t-s" x="485" y="116" text-anchor="middle">3.4 MB text</text>
+  <text class="svg-t-s" x="485" y="132" text-anchor="middle">source separators</text>
+
+  <rect class="svg-box" x="605" y="70" width="150" height="80" rx="7"/>
+  <text class="svg-t-b" x="680" y="98" text-anchor="middle">Splitter</text>
+  <text class="svg-t-s" x="680" y="116" text-anchor="middle">1000 / 150</text>
+  <text class="svg-t-s" x="680" y="132" text-anchor="middle">recursive chunks</text>
+
+  <rect class="svg-box-navy" x="790" y="70" width="150" height="80" rx="7"/>
+  <text class="svg-t-w" x="865" y="98" text-anchor="middle">Chroma</text>
+  <text class="svg-t-s" x="865" y="116" text-anchor="middle" fill="#c7dceb">bge-m3 vectors</text>
+  <text class="svg-t-s" x="865" y="132" text-anchor="middle" fill="#c7dceb">+ metadata</text>
+
+  <line class="svg-line" x1="170" y1="110" x2="205" y2="110" marker-end="url(#a2)"/>
+  <line class="svg-line" x1="365" y1="110" x2="400" y2="110" marker-end="url(#a2)"/>
+  <line class="svg-line" x1="570" y1="110" x2="605" y2="110" marker-end="url(#a2)"/>
+  <line class="svg-line" x1="755" y1="110" x2="790" y2="110" marker-end="url(#a2)"/>
+
+  <rect class="svg-box-grey" x="205" y="200" width="560" height="66" rx="7"/>
+  <text class="svg-t-b" x="485" y="224" text-anchor="middle">Same splitter settings in the benchmark</text>
+  <text class="svg-t-s" x="485" y="242" text-anchor="middle">bench/draft_cases.py:split_corpus &mdash; prevents train/serve skew between the product and the evaluation</text>
+  <line class="svg-dash" x1="680" y1="150" x2="600" y2="200"/>
+</svg>
+</div>
+<div class="caption">Figure 2 &mdash; Ingestion pipeline. The benchmark deliberately reuses production chunking so retrieval scores describe the real system.</div>
+
+<h2>7.3 Why Docling instead of plain text extraction</h2>
+<p>Naive PDF extraction interleaves columns and destroys tables. In a document set dominated by
+safety guidelines, a mis-ordered table can invert the meaning of a threshold. Docling preserves
+reading order and table structure, which improves both retrieval quality and the plausibility of
+gold answers. The trade-off is conversion time and an extra dependency; conversion is offline,
+so runtime latency is unaffected.</p>
+
+<h2>7.4 Corpus risks</h2>
+<ul>
+  <li><strong>Imbalance.</strong> Laser-safety material and vendor manuals dominate. Unless sampling is stratified, questions about those topics will dominate the benchmark.</li>
+  <li><strong>Near-duplicates.</strong> Several source PDFs overlap, producing near-duplicate chunks and potentially near-duplicate questions.</li>
+  <li><strong>Staleness.</strong> A regulatory guideline is a snapshot. The system cites the document; it does not establish that the document is current.</li>
+  <li><strong>Licensing.</strong> <code>docs/CORPUS_SOURCES.md</code> records source and licence status; the corpus is for internal research use.</li>
+</ul>
+
+<!-- ============================ 8. RETRIEVAL ============================ -->
+<h1 class="sec"><span class="num">8</span>The retrieval stack</h1>
+
+<h2>8.1 Production retriever</h2>
+<p><code>src/core/retriever.py</code> builds a <code>ContextualCompressionRetriever</code>:
+Chroma returns the top <strong>25</strong> candidates using <code>bge-m3</code>; FlashRank
+(<code>ms-marco-TinyBERT-L-2-v2</code>) re-scores them and keeps the top <strong>7</strong>.
+<code>retrieve_chunks()</code> then labels each chunk <code>C1..Cn</code> and attaches the document
+and section. The retriever is cached with <code>st.cache_resource</code> so a Streamlit rerun does
+not rebuild the index.</p>
+
+<h2>8.2 The four retrieval arms</h2>
+<p>The benchmark needs to separate the contribution of dense retrieval, lexical retrieval,
+fusion, and reranking. The arms do exactly that:</p>
+
+<table>
+  <thead><tr><th style="width:12%">Arm</th><th>Mechanism</th><th>What it isolates</th><th style="width:18%">Cost/latency profile</th></tr></thead>
+  <tbody>
+    <tr><td><strong>A1</strong></td><td>Dense top-7 over Chroma/bge-m3</td><td>Semantic retrieval alone</td><td>One embedding call + vector search</td></tr>
+    <tr><td><strong>A2</strong></td><td>BM25 top-7</td><td>Lexical retrieval alone</td><td>No embeddings; fast, exact-term sensitive</td></tr>
+    <tr><td><strong>A3</strong></td><td>Dense + BM25 fused with RRF, top-7</td><td>Value of combining signals</td><td>Both retrievals, no cross-encoder</td></tr>
+    <tr><td><strong>A4</strong></td><td>Hybrid candidates (25) &rarr; FlashRank &rarr; top-7</td><td>Value of cross-encoder reranking</td><td>Highest retrieval cost; best precision expected</td></tr>
+  </tbody>
+</table>
+
+<h2>8.3 Reciprocal rank fusion</h2>
+<p>Dense and BM25 scores are not comparable in scale, so the hybrid arm fuses <em>ranks</em>:</p>
+<pre><code>score(d) = sum over retrievers r of 1 / (k + rank_r(d)),   k = 60</code></pre>
+<p>Each retriever contributes its top 25. A document that appears high in both lists wins. RRF is
+parameter-light, robust to score calibration problems, and easy to explain &mdash; a good choice for
+an auditable system.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 960 250" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a3" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect class="svg-box-navy" x="18" y="90" width="130" height="70" rx="7"/>
+  <text class="svg-t-w" x="83" y="118" text-anchor="middle">Query</text>
+  <text class="svg-t-s" x="83" y="136" text-anchor="middle" fill="#c7dceb">user question</text>
+
+  <rect class="svg-box-teal" x="188" y="34" width="180" height="70" rx="7"/>
+  <text class="svg-t-b" x="278" y="60" text-anchor="middle">Dense retrieval</text>
+  <text class="svg-t-s" x="278" y="78" text-anchor="middle">bge-m3 + Chroma</text>
+  <text class="svg-t-s" x="278" y="93" text-anchor="middle">top 25</text>
+
+  <rect class="svg-box" x="188" y="146" width="180" height="70" rx="7"/>
+  <text class="svg-t-b" x="278" y="172" text-anchor="middle">BM25</text>
+  <text class="svg-t-s" x="278" y="190" text-anchor="middle">lexical exact terms</text>
+  <text class="svg-t-s" x="278" y="205" text-anchor="middle">top 25</text>
+
+  <rect class="svg-box-amber" x="408" y="90" width="150" height="70" rx="7"/>
+  <text class="svg-t-b" x="483" y="118" text-anchor="middle">RRF fusion</text>
+  <text class="svg-t-s" x="483" y="136" text-anchor="middle">rank-based, k=60</text>
+
+  <rect class="svg-box-teal" x="598" y="90" width="160" height="70" rx="7"/>
+  <text class="svg-t-b" x="678" y="118" text-anchor="middle">FlashRank</text>
+  <text class="svg-t-s" x="678" y="136" text-anchor="middle">TinyBERT cross-encoder</text>
+
+  <rect class="svg-box-navy" x="798" y="90" width="145" height="70" rx="7"/>
+  <text class="svg-t-w" x="870" y="118" text-anchor="middle">Top 7 chunks</text>
+  <text class="svg-t-s" x="870" y="136" text-anchor="middle" fill="#c7dceb">[C1] ... [C7]</text>
+
+  <line class="svg-line" x1="148" y1="115" x2="180" y2="75" marker-end="url(#a3)"/>
+  <line class="svg-line" x1="148" y1="135" x2="180" y2="175" marker-end="url(#a3)"/>
+  <line class="svg-line" x1="368" y1="72" x2="408" y2="105" marker-end="url(#a3)"/>
+  <line class="svg-line" x1="368" y1="178" x2="408" y2="145" marker-end="url(#a3)"/>
+  <line class="svg-line" x1="558" y1="125" x2="598" y2="125" marker-end="url(#a3)"/>
+  <line class="svg-line" x1="758" y1="125" x2="798" y2="125" marker-end="url(#a3)"/>
+</svg>
+</div>
+<div class="caption">Figure 3 &mdash; Hybrid retrieval. A1/A2 stop after one branch; A3 adds fusion; A4 adds reranking.</div>
+
+<h2>8.4 Why reranking, and why TinyBERT</h2>
+<p>Bi-encoders embed the query and document independently; they are fast but cannot model
+token-level interaction. A cross-encoder scores the pair jointly and is materially better at
+rejecting near-misses. FlashRank&rsquo;s TinyBERT model runs on CPU, adds only tens of
+milliseconds for 25 candidates, and needs no external API. That makes it suitable for a demo on a
+modest laptop. A larger reranker would likely improve precision, but would also raise latency and
+memory; the arm comparison is designed to quantify that trade-off rather than assume it.</p>
+
+<h2>8.5 Failure modes worth naming</h2>
+<ul>
+  <li><strong>Vocabulary overlap.</strong> LLM-drafted questions reuse passage wording, which flatters both dense and lexical retrieval. Human editing is the mitigation.</li>
+  <li><strong>Chunk boundary loss.</strong> A gold answer may span two chunks; overlap reduces but does not eliminate this.</li>
+  <li><strong>Reranker domain mismatch.</strong> TinyBERT was trained on web passages, not semiconductor SOPs. The geometry/safety language can be out of distribution.</li>
+  <li><strong>Index staleness.</strong> Editing a PDF without rebuilding Chroma leaves the agent citing old text; the dataset records a <code>text_hash</code> so review can detect a corpus change.</li>
+</ul>
+
+<!-- ============================ 9. GRAPH ============================ -->
+<h1 class="sec"><span class="num">9</span>The LangGraph agent</h1>
+
+<h2>9.1 State</h2>
+<p>The graph state is intentionally small and typed:</p>
+<table class="compact">
+  <thead><tr><th style="width:22%">Field</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>messages</code></td><td>Conversation history, merged with LangGraph&rsquo;s <code>add_messages</code> reducer.</td></tr>
+    <tr><td><code>role</code></td><td>One of <code>Safety Agent</code>, <code>Maintainance Agent</code> (the code&rsquo;s spelling), <code>Draw Agent</code>, <code>Chatbot</code>.</td></tr>
+    <tr><td><code>is_blocked</code></td><td>True when the guardrail short-circuits the turn (refusal or scripted dialogue).</td></tr>
+    <tr><td><code>eval_results</code></td><td>Optional DeepEval scores for online telemetry.</td></tr>
+    <tr><td><code>rag_calls</code></td><td>Number of retrieval calls used, for the tool budget.</td></tr>
+    <tr><td><code>expected_tools</code></td><td>Optional gold tool list; when absent, tool correctness is not scored.</td></tr>
+  </tbody>
+</table>
+
+<h2>9.2 Nodes and edges</h2>
+<div class="diagram">
+<svg viewBox="0 0 940 360" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a4" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/>
+    </marker>
+    <marker id="a4r" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#b91c1c"/>
+    </marker>
+  </defs>
+
+  <circle cx="45" cy="180" r="18" fill="#16324f"/>
+  <text class="svg-t-w" x="45" y="185" text-anchor="middle" font-size="10">START</text>
+
+  <rect class="svg-box-teal" x="95" y="148" width="150" height="64" rx="7"/>
+  <text class="svg-t-b" x="170" y="174" text-anchor="middle">guardrail</text>
+  <text class="svg-t-s" x="170" y="191" text-anchor="middle">NeMo decision</text>
+
+  <rect class="svg-box-red" x="95" y="282" width="150" height="52" rx="7"/>
+  <text class="svg-t-b" x="170" y="305" text-anchor="middle">block / dialogue</text>
+  <text class="svg-t-s" x="170" y="321" text-anchor="middle">END with message</text>
+
+  <rect class="svg-box" x="300" y="148" width="150" height="64" rx="7"/>
+  <text class="svg-t-b" x="375" y="174" text-anchor="middle">role_decide</text>
+  <text class="svg-t-s" x="375" y="191" text-anchor="middle">structured output</text>
+
+  <rect class="svg-box-navy" x="505" y="148" width="170" height="64" rx="7"/>
+  <text class="svg-t-w" x="590" y="174" text-anchor="middle">orchestrator</text>
+  <text class="svg-t-s" x="590" y="191" text-anchor="middle" fill="#c7dceb">tool-calling LLM</text>
+
+  <rect class="svg-box" x="505" y="34" width="170" height="64" rx="7"/>
+  <text class="svg-t-b" x="590" y="60" text-anchor="middle">tools</text>
+  <text class="svg-t-s" x="590" y="77" text-anchor="middle">load_prompt / spawn_geometry</text>
+
+  <rect class="svg-box-grey" x="735" y="148" width="160" height="64" rx="7"/>
+  <text class="svg-t-b" x="815" y="174" text-anchor="middle">evaluate</text>
+  <text class="svg-t-s" x="815" y="191" text-anchor="middle">DeepEval (optional)</text>
+
+  <circle cx="920" cy="180" r="15" fill="#16324f"/>
+  <text class="svg-t-w" x="920" y="184" text-anchor="middle" font-size="9">END</text>
+
+  <line class="svg-line" x1="63" y1="180" x2="95" y2="180" marker-end="url(#a4)"/>
+  <line class="svg-line" x1="170" y1="212" x2="170" y2="282" marker-end="url(#a4r)"/>
+  <line class="svg-line" x1="245" y1="180" x2="300" y2="180" marker-end="url(#a4)"/>
+  <text class="svg-label" x="272" y="173" text-anchor="middle" font-size="8.5">pass</text>
+  <line class="svg-line" x1="450" y1="180" x2="505" y2="180" marker-end="url(#a4)"/>
+  <line class="svg-line" x1="565" y1="148" x2="565" y2="98" marker-end="url(#a4)"/>
+  <text class="svg-label" x="571" y="126" font-size="8.5">call</text>
+  <line class="svg-line" x1="615" y1="98" x2="615" y2="148" marker-end="url(#a4)"/>
+  <text class="svg-label" x="621" y="126" font-size="8.5">result</text>
+  <line class="svg-line" x1="675" y1="180" x2="735" y2="180" marker-end="url(#a4)"/>
+  <line class="svg-line" x1="895" y1="180" x2="905" y2="180" marker-end="url(#a4)"/>
+</svg>
+</div>
+<div class="caption">Figure 4 &mdash; LangGraph state machine. The tools node loops back to the orchestrator; the guarded wrapper caps retrieval calls.</div>
+
+<p>In text form the control flow is:</p>
+<pre><code>START
+  -&gt; guardrail
+       -&gt; END                       (blocked or scripted dialogue)
+       -&gt; role_decide -&gt; orchestrator
+  -&gt; orchestrator
+       -&gt; tools -&gt; orchestrator       (while the model requests a tool)
+       -&gt; evaluate -&gt; END            (final answer)
+</code></pre>
+
+<h2>9.3 Why route by role at all?</h2>
+<p>Routing is not cosmetic. The four roles encode different risk profiles and different expected
+behaviour. A safety question should be answered conservatively and cite the governing document; a
+drawing request should prefer the geometry tool over prose; a greeting should not pay the cost of
+retrieval; maintenance questions often need multi-step procedural context. The role is also a
+labelled target in LithoBench, which lets the router be evaluated independently of answer quality.</p>
+
+<table>
+  <thead><tr><th style="width:22%">Role</th><th>Typical request</th><th>Expected behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Safety Agent</strong></td><td>&ldquo;What PPE is required for HF handling?&rdquo;</td><td>Conservative, citation-heavy, no improvisation.</td></tr>
+    <tr><td><strong>Maintainance Agent</strong></td><td>&ldquo;How do I calibrate the stepper stage?&rdquo;</td><td>Procedural, ordered steps, document references.</td></tr>
+    <tr><td><strong>Draw Agent</strong></td><td>&ldquo;Draw a 200 mm square.&rdquo;</td><td>Emit geometry commands, never invent dimensions.</td></tr>
+    <tr><td><strong>Chatbot</strong></td><td>&ldquo;Who are you?&rdquo;</td><td>Short orientation, no retrieval.</td></tr>
+  </tbody>
+</table>
+
+<h2>9.4 Router model nuance</h2>
+<p>The production <code>GraphConfig</code> defaults to <code>openai/gpt-oss-20b</code> for routing
+and <code>openai/gpt-oss-120b</code> for orchestration. The arm runner overrides the router model
+with the generator model so that A5&ndash;A7 differ only in graph structure, not in model choice.
+This is a deliberate experimental-control decision, and worth explaining if asked why the README
+and the arm config appear to disagree.</p>
+
+<h2>9.5 The retrieval budget</h2>
+<p><code>make_guarded_tool_node</code> wraps LangGraph&rsquo;s <code>ToolNode</code>. It counts
+<code>load_prompt</code> calls in the latest AI message and compares them with
+<code>max_rag_calls</code> (default 3). When the budget is exhausted it returns a
+<code>ToolMessage</code> telling the model to answer from existing context instead of executing the
+tool. This prevents the classic agent failure where the model repeatedly rephrases a query and
+never converges, burning tokens and latency.</p>
+
+<h2>9.6 Testability</h2>
+<p><code>build_graph</code> accepts injected <code>llms</code>, an <code>evaluator</code> callable
+and a replacement <code>tools</code> list. Tests use this to run the entire graph offline with
+fake models and a capturing geometry stub. The same injection points are used by the guardrail,
+geometry and injection evaluations. This is why 179 tests can cover agent behaviour without any
+API key.</p>
+
+<!-- ============================ 10. GUARDRAILS ============================ -->
+<h1 class="sec"><span class="num">10</span>Guardrails</h1>
+
+<h2>10.1 Position in the pipeline</h2>
+<p>Guardrails run <em>before</em> role classification and orchestration. This ordering is the
+central safety decision: a jailbreak or an off-topic request never reaches the reasoning model
+with tool access. It also saves cost and latency on turns that should be refused or answered with
+a canned dialogue.</p>
+
+<h2>10.2 The three outcomes</h2>
+<table>
+  <thead><tr><th style="width:18%">Marker</th><th>Meaning</th><th>Graph behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><code>QUERY_PASSED</code></td><td>Technical lithography, safety, maintenance or geometry request.</td><td><code>is_blocked=False</code>; continue to <code>role_decide</code> (or directly to the orchestrator in A6).</td></tr>
+    <tr><td><code>DIALOG:</code></td><td>Greeting, identity, gratitude or goodbye.</td><td>Short-circuit with the scripted reply; <code>is_blocked=True</code> is used as &ldquo;do not continue to orchestration&rdquo;.</td></tr>
+    <tr><td><code>[RAIL_BLOCKED]</code></td><td>Jailbreak, spam, gibberish, harmful procedure or off-topic request.</td><td>Short-circuit with the refusal message.</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <span class="label teal">Nuance</span>
+  In the graph state, <code>is_blocked</code> means &ldquo;the turn was short-circuited&rdquo;, not
+  strictly &ldquo;the user was refused&rdquo;. A greeting is also short-circuited. The guardrail
+  evaluation therefore counts refusals with <code>is_refusal()</code> on the output text rather
+  than relying on the flag alone. Being precise about this distinction is a good interview signal.
+</div>
+
+<h2>10.3 How NeMo is configured</h2>
+<p><code>src/guardrails/config/config.yml</code> defines the general instruction and the marker
+contract; <code>rails.co</code> defines user intents, bot responses and dialogue flows. Intents
+include greetings, identity, gratitude, goodbye, jokes, gibberish, spam and off-topic questions.
+The canonical domain intents pass through. The model is instructed to emit the marker as the very
+first text and never to answer a technical question itself.</p>
+
+<h2>10.4 The Streamlit event-loop bug and its fix</h2>
+<p>An <code>LLMRails</code> instance binds to the asyncio event loop of the thread that created
+it. Streamlit reruns execute in a new thread, so a module-level rails object deadlocks on the
+second interaction. The fix in this project is to load <code>RailsConfig</code> once (it is
+thread-safe) and construct <code>LLMRails</code> per call, bound to the active thread&rsquo;s loop.
+<code>nest_asyncio</code> allows the synchronous call inside Streamlit. This is a real production
+bug that a purely notebook-based prototype would never expose.</p>
+
+<h2>10.5 Failure behaviour</h2>
+<ul>
+  <li><strong>Missing key:</strong> rail construction fails; the graph should surface an error rather than silently allowing the query. In the UI, live mode requires keys up front.</li>
+  <li><strong>Model error:</strong> treated as an exception; the evaluation records failures instead of inventing a pass.</li>
+  <li><strong>Marker ambiguity:</strong> <code>run_guardrail</code> strips <code>&lt;think&gt;</code> blocks and normalises <code>DIALOG:</code> / <code>[RAIL_BLOCKED...]</code>. Anything without <code>QUERY_PASSED</code> is treated as short-circuited &mdash; a fail-closed default.</li>
+</ul>
+
+<h2>10.6 Why not rely on the LLM&rsquo;s own judgement?</h2>
+<p>Prompt-only safety is probabilistic and easy to argue around. NeMo provides a separate policy
+layer with explicit flows, and the graph enforces its decision structurally. The evaluation then
+measures attack success rate and false refusal across five systems, so the guardrail is treated as
+a component with its own evidence, not as an assumed benefit.</p>
+
+<!-- ============================ 11. GEOMETRY ============================ -->
+<h1 class="sec"><span class="num">11</span>Geometry bridge and Unreal Engine</h1>
+
+<h2>11.1 The contract</h2>
+<p>The model can call one drawing tool, <code>spawn_geometry(commands)</code>. Each command has:</p>
+<table>
+  <thead><tr><th style="width:16%">Field</th><th>Type</th><th>Rules</th></tr></thead>
+  <tbody>
+    <tr><td><code>shape</code></td><td>string</td><td>Exactly <code>line</code>, <code>polygon</code> or <code>circle</code>.</td></tr>
+    <tr><td><code>size</code></td><td>float</td><td>Positive; at most <code>LITHO_MAX_SIZE</code> (default 5000). Omitted when the user gave no size.</td></tr>
+    <tr><td><code>angle</code></td><td>float</td><td>Absolute, anticlockwise from the x-axis; 0 = right, 90 = up; wrapped into [0, 360).</td></tr>
+  </tbody>
+</table>
+
+<p>Validation happens in <code>src/core/geometry.py</code> with Pydantic, not in the prompt. The
+tool returns one of four statuses:</p>
+<table class="compact">
+  <thead><tr><th style="width:18%">Status</th><th>When</th><th>What is written</th></tr></thead>
+  <tbody>
+    <tr><td><code>ok</code></td><td>All commands valid.</td><td>A packet with a UUID and UTC timestamp.</td></tr>
+    <tr><td><code>needs_clarification</code></td><td>Any command has <code>size: null</code>.</td><td>Nothing. The model must ask the user.</td></tr>
+    <tr><td><code>invalid</code></td><td>Unknown shape, size &le; 0, size above the limit, non-numeric field.</td><td>Nothing. Structured errors are returned to the model.</td></tr>
+    <tr><td><code>error</code></td><td>The mailbox cannot be written.</td><td>Nothing; the failure is reported.</td></tr>
+  </tbody>
+</table>
+
+<h2>11.2 The file bridge</h2>
+<p>The tool writes <code>unreal_mailbox.json</code> into <code>LITHO_MAILBOX_DIR</code> using
+<code>tempfile.mkstemp</code>, <code>fsync</code>, then <code>os.replace</code>. The atomic replace
+means Unreal never reads a half-written packet. Unreal polls the file on tick, builds spline and
+mesh actors, and optionally writes <code>unreal_ack.json</code> after rendering. The Python side
+can wait for that acknowledgement through <code>src/services/ue_ack.py</code>, which is how the
+real end-to-end latency measurement closes the loop.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a5" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/>
+    </marker>
+    <marker id="a5t" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#0f766e"/>
+    </marker>
+  </defs>
+
+  <rect class="svg-box" x="15" y="110" width="140" height="66" rx="7"/>
+  <text class="svg-t-b" x="85" y="136" text-anchor="middle">&ldquo;Draw a 200 mm</text>
+  <text class="svg-t-b" x="85" y="152" text-anchor="middle">square&rdquo;</text>
+  <text class="svg-t-s" x="85" y="168" text-anchor="middle">user utterance</text>
+
+  <rect class="svg-box-navy" x="185" y="110" width="150" height="66" rx="7"/>
+  <text class="svg-t-w" x="260" y="136" text-anchor="middle">orchestrator</text>
+  <text class="svg-t-s" x="260" y="154" text-anchor="middle" fill="#c7dceb">emits tool call</text>
+  <text class="svg-t-s" x="260" y="168" text-anchor="middle" fill="#c7dceb">commands[]</text>
+
+  <rect class="svg-box-teal" x="365" y="110" width="150" height="66" rx="7"/>
+  <text class="svg-t-b" x="440" y="136" text-anchor="middle">validate</text>
+  <text class="svg-t-s" x="440" y="154" text-anchor="middle">shape / size / angle</text>
+  <text class="svg-t-s" x="440" y="168" text-anchor="middle">Pydantic + max size</text>
+
+  <rect class="svg-box" x="545" y="110" width="150" height="66" rx="7"/>
+  <text class="svg-t-b" x="620" y="136" text-anchor="middle">atomic write</text>
+  <text class="svg-t-s" x="620" y="154" text-anchor="middle">unreal_mailbox.json</text>
+  <text class="svg-t-s" x="620" y="168" text-anchor="middle">UUID + timestamp</text>
+
+  <rect class="svg-box-navy" x="725" y="110" width="130" height="66" rx="7"/>
+  <text class="svg-t-w" x="790" y="136" text-anchor="middle">Unreal 5</text>
+  <text class="svg-t-s" x="790" y="154" text-anchor="middle" fill="#c7dceb">poll on tick</text>
+  <text class="svg-t-s" x="790" y="168" text-anchor="middle" fill="#c7dceb">render actors</text>
+
+  <rect class="svg-box-grey" x="725" y="228" width="200" height="52" rx="7"/>
+  <text class="svg-t-b" x="825" y="250" text-anchor="middle">unreal_ack.json</text>
+  <text class="svg-t-s" x="825" y="267" text-anchor="middle">optional, closes the latency loop</text>
+
+  <rect class="svg-box" x="430" y="228" width="240" height="52" rx="7"/>
+  <text class="svg-t-b" x="550" y="250" text-anchor="middle">measure_e2e.py</text>
+  <text class="svg-t-s" x="550" y="267" text-anchor="middle">polls ack, writes the latency result</text>
+
+  <line class="svg-line" x1="155" y1="143" x2="185" y2="143" marker-end="url(#a5)"/>
+  <line class="svg-line" x1="335" y1="143" x2="365" y2="143" marker-end="url(#a5)"/>
+  <line class="svg-line" x1="515" y1="143" x2="545" y2="143" marker-end="url(#a5)"/>
+  <line class="svg-line" x1="695" y1="143" x2="725" y2="143" marker-end="url(#a5)"/>
+  <line class="svg-dash" x1="790" y1="176" x2="800" y2="228" marker-end="url(#a5t)"/>
+  <line class="svg-dash" x1="725" y1="254" x2="670" y2="254" marker-end="url(#a5t)"/>
+</svg>
+</div>
+<div class="caption">Figure 5 &mdash; Geometry dispatch. Validation happens before any file is written; Unreal never sees an invalid or partial packet.</div>
+
+<h2>11.3 Why file-based and not a socket</h2>
+<p>A socket is lower latency but couples process lifetimes and adds failure modes (port conflicts,
+firewalls, reconnect logic, protocol versioning). A file bridge is debuggable: an engineer can open
+the JSON, and either side can restart independently. For a research and training system where
+latency is measured in hundreds of milliseconds to seconds, the coupling cost of a socket is not
+justified. The trade-off is polling latency, which the end-to-end measurement makes visible.</p>
+
+<h2>11.4 Replay and its known limitation</h2>
+<p><code>replay()</code> converts commands into a polyline for geometric comparison. Lines and
+polygons advance the pen by <code>size</code> at the absolute angle; circles record a centre and
+radius without moving the pen. Because the command schema has no vertex list, a polygon is
+replayed as a single edge. The geometry evaluator reports both exact command match and a replay
+distance, and the limitation is documented rather than hidden. A future schema could add
+<code>vertices</code> or a <code>polygon_sides</code> field.</p>
+
+<h2>11.5 Safety properties</h2>
+<ul>
+  <li><strong>No guessed dimensions.</strong> Missing size produces clarification, not a default.</li>
+  <li><strong>Bounded size.</strong> <code>LITHO_MAX_SIZE</code> prevents absurd geometry that could destabilise a scene.</li>
+  <li><strong>No arbitrary execution.</strong> The tool accepts data, not code; shapes are a closed set.</li>
+  <li><strong>Provenance gate.</strong> In the injection evaluation, D3 refuses geometry calls that were not preceded by an explicit user drawing request.</li>
+</ul>
+
+<!-- ============================ 12. CITATIONS ============================ -->
+<h1 class="sec"><span class="num">12</span>Citations and abstention</h1>
+
+<p>Retrieval alone does not make an answer auditable. The A8 arm adds a post-generation contract:
+every factual or procedural claim must carry at least one <code>[Cn]</code> citation, and a cited
+chunk must actually support the sentence. If the answer cannot be repaired, the system abstains.</p>
+
+<h2>12.1 The citation rule</h2>
+<pre><code>Every factual or procedural claim must carry at least one [Cn] citation.
+Hazard-critical answers (chemicals, interlocks, emergency procedures) must
+also name the document and section.</code></pre>
+
+<p>Chunks are formatted as:</p>
+<pre><code>[C1] laser_safety.pdf :: 4.2 PPE
+...
+[C2] sop_92.pdf :: Lockout
+...</code></pre>
+
+<h2>12.2 Validation</h2>
+<p><code>validate_citations</code> splits the answer into sentences and classifies a sentence as a
+claim if it contains a procedural verb (&ldquo;wear&rdquo;, &ldquo;turn&rdquo;, &ldquo;calibrate&rdquo;,
+&ldquo;do not&rdquo;, &hellip;) or a number. It then checks:</p>
+<ul>
+  <li><strong>ID validity:</strong> every <code>[Cn]</code> must exist in the retrieved set.</li>
+  <li><strong>Coverage:</strong> every claim sentence must have at least one valid citation.</li>
+  <li><strong>Support:</strong> the cited chunk must support the sentence, according to a judge model.</li>
+</ul>
+
+<p>Two metrics fall out of this:</p>
+<pre><code>citation_precision = supported citations / all citations
+coverage           = claims with a valid citation / all claims</code></pre>
+
+<h2>12.3 The enforcement loop</h2>
+<div class="diagram">
+<svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a6" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/>
+    </marker>
+    <marker id="a6r" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#b91c1c"/>
+    </marker>
+  </defs>
+
+  <rect class="svg-box-navy" x="20" y="110" width="140" height="66" rx="7"/>
+  <text class="svg-t-w" x="90" y="136" text-anchor="middle">Generate</text>
+  <text class="svg-t-s" x="90" y="154" text-anchor="middle" fill="#c7dceb">answer + [Cn]</text>
+  <text class="svg-t-s" x="90" y="168" text-anchor="middle" fill="#c7dceb">from context</text>
+
+  <rect class="svg-box-teal" x="200" y="110" width="150" height="66" rx="7"/>
+  <text class="svg-t-b" x="275" y="136" text-anchor="middle">Validate</text>
+  <text class="svg-t-s" x="275" y="154" text-anchor="middle">ids / coverage</text>
+  <text class="svg-t-s" x="275" y="168" text-anchor="middle">support per claim</text>
+
+  <polygon points="420,143 475,105 530,143 475,181" class="svg-box-amber"/>
+  <text class="svg-t-b" x="475" y="140" text-anchor="middle">valid?</text>
+  <text class="svg-t-s" x="475" y="156" text-anchor="middle">no issues</text>
+
+  <rect class="svg-box-teal" x="585" y="40" width="150" height="60" rx="7"/>
+  <text class="svg-t-b" x="660" y="65" text-anchor="middle">Return answer</text>
+  <text class="svg-t-s" x="660" y="82" text-anchor="middle">with sources</text>
+
+  <rect class="svg-box" x="585" y="110" width="150" height="66" rx="7"/>
+  <text class="svg-t-b" x="660" y="136" text-anchor="middle">Repair once</text>
+  <text class="svg-t-s" x="660" y="154" text-anchor="middle">feedback = issues</text>
+  <text class="svg-t-s" x="660" y="168" text-anchor="middle">re-validate</text>
+
+  <rect class="svg-box-red" x="585" y="210" width="230" height="66" rx="7"/>
+  <text class="svg-t-b" x="700" y="236" text-anchor="middle">Abstain</text>
+  <text class="svg-t-s" x="700" y="254" text-anchor="middle">&ldquo;I can't support this from the documents.&rdquo;</text>
+  <text class="svg-t-s" x="700" y="268" text-anchor="middle">+ closest sources</text>
+
+  <line class="svg-line" x1="160" y1="143" x2="200" y2="143" marker-end="url(#a6)"/>
+  <line class="svg-line" x1="350" y1="143" x2="420" y2="143" marker-end="url(#a6)"/>
+  <line class="svg-line" x1="500" y1="120" x2="585" y2="78" marker-end="url(#a6)"/>
+  <text class="svg-label" x="515" y="92">yes</text>
+  <line class="svg-line" x1="510" y1="155" x2="585" y2="145" marker-end="url(#a6)"/>
+  <text class="svg-label" x="535" y="168">no</text>
+  <path class="svg-line" d="M660 176 L660 210" marker-end="url(#a6r)"/>
+  <text class="svg-label" x="668" y="198">still invalid</text>
+  <path class="svg-dash" d="M585 143 L560 143 L560 143 L530 143" marker-end="url(#a6)"/>
+</svg>
+</div>
+<div class="caption">Figure 6 &mdash; Citation enforcement: one repair attempt, then fail closed with the closest sources.</div>
+
+<h2>12.4 Why one repair and not three</h2>
+<p>Each repair is a full generation call plus a judge call per claim. More retries increase cost
+and latency roughly linearly, and empirical experience with citation repair is that a second
+attempt rarely fixes a structural failure; it often produces a more confident but equally
+unsupported answer. One retry is a deliberate cost/benefit choice, and it is recorded in the
+evaluation so the decision can be revisited with data.</p>
+
+<h2>12.5 What A8 changes in the comparison</h2>
+<p>A8 wraps the A5 agent. The base agent produces an answer; A8 then regenerates with the citation
+rule and validates. This means A8 is not an independent retrieval arm; it is a <em>post-hoc
+contract</em> on top of A5. The comparison therefore answers: &ldquo;does enforcing citations
+change correctness, and what does it cost in abstention?&rdquo; It is reported as paired
+correctness against A5, not as another retrieval variant.</p>
+
+<h2>12.6 Failure modes</h2>
+<ul>
+  <li><strong>Judge false positives.</strong> The support checker is an LLM; it can accept a plausible but unsupported sentence.</li>
+  <li><strong>Claim detection is heuristic.</strong> A sentence with no procedural verb and no number may be factual but escape the coverage check.</li>
+  <li><strong>Over-abstention.</strong> A valid answer with a stylistic sentence can fail coverage and be replaced by an abstention, reducing usefulness.</li>
+  <li><strong>Cost.</strong> Per-claim judging is the most expensive part of the pipeline; A8 should be justified by a measurable precision gain.</li>
+</ul>
+
+<!-- ============================ 13. SERVICES ============================ -->
+<h1 class="sec"><span class="num">13</span>Supporting services</h1>
+
+<h2>13.1 Audio ingestion</h2>
+<p><code>src/services/audio_service.py</code> watches <code>LITHO_AUDIO_PATH</code> (default
+<code>./runtime/UserAudioInput.wav</code>) using a periodic Streamlit fragment. Unreal&rsquo;s
+microphone manager writes the file; the service handles file locks, copies the audio to a
+processing buffer, transcribes it with Google Speech Recognition, and feeds the text into the
+normal chat path. Browser microphone input is also supported through Streamlit&rsquo;s chat input.</p>
+
+<h2>13.2 Translation and speech output</h2>
+<p><code>translation.py</code> uses <code>deep-translator</code> for Hindi. <code>tts_service.py</code>
+uses <code>gTTS</code> to generate an in-memory audio stream and detects Devanagari text to choose
+Hindi versus English. Both are optional: a failure in translation or TTS must not break the answer
+path.</p>
+
+<h2>13.3 Unreal acknowledgement</h2>
+<p><code>src/services/ue_ack.py</code> waits for <code>unreal_ack.json</code> with a timeout
+supplied by the caller (<code>LITHO_ACK_TIMEOUT_S</code> in the template is the suggested value).
+<code>scripts/measure_e2e.py</code> uses it to measure true text-to-render latency;
+<code>tools/fake_unreal.py</code> is an offline stand-in that writes an acknowledgement for CI.
+The fake path is always labelled <code>ue_mode: fake</code>.</p>
+
+<table>
+  <thead><tr><th style="width:24%">Service</th><th>External dependency</th><th>Failure isolation</th></tr></thead>
+  <tbody>
+    <tr><td>Speech recognition</td><td>Google Speech Recognition</td><td>Audio failure is surfaced; text path unaffected.</td></tr>
+    <tr><td>Translation</td><td><code>deep-translator</code></td><td>Optional; original answer remains.</td></tr>
+    <tr><td>Text-to-speech</td><td><code>gTTS</code></td><td>Optional; text remains.</td></tr>
+    <tr><td>Unreal ack</td><td>UE5 blueprint</td><td>Timeout reported; fake mode for CI.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ 14. UI ============================ -->
+<h1 class="sec"><span class="num">14</span>The Streamlit application</h1>
+
+<p>The UI is a seven-page application, not a single chat box. Each page answers a different
+question a reviewer or interviewer will ask: what was measured, how, on what data, with which arm,
+and what does a live answer look like?</p>
+
+<table>
+  <thead><tr><th style="width:22%">Page</th><th>Purpose</th><th>Key components</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Methodology</strong></td><td>Dataset card, evaluation protocol, limitations, reproduction and architecture in one place.</td><td>Markdown cards, links to docs</td></tr>
+    <tr><td><strong>Benchmark</strong></td><td>Headline table and charts for all arms, guardrails, geometry, latency and cost; CSV export; mock/blocked badges.</td><td><code>charts.py</code>, loaders</td></tr>
+    <tr><td><strong>Dataset Explorer</strong></td><td>Browse QA, adversarial, geometry, router and injection cases; inspect origins, splits and gold sources.</td><td>Filters, dataframes</td></tr>
+    <tr><td><strong>Geometry Lab</strong></td><td>Write or load command JSON, validate, preview, send to the mailbox, measure ack.</td><td><code>geometry_card.py</code></td></tr>
+    <tr><td><strong>Safety Lab</strong></td><td>Compare guardrail systems and injection defences; demonstrate a poisoned document.</td><td>Charts, case tables</td></tr>
+    <tr><td><strong>Arm Playground</strong></td><td>Run the same question through selected arms and compare answers, chunks and cost. Live mode builds real arms.</td><td>Multiselect, dataframes, citations</td></tr>
+    <tr><td><strong>Assistant</strong></td><td>Chat with the agent; show trace, retrieved chunks, citations and optional geometry.</td><td><code>chat.py</code>, <code>trace_panel.py</code>, <code>citations.py</code></td></tr>
+  </tbody>
+</table>
+
+<h2>14.1 Demo versus live</h2>
+<p>The mode is resolved from <code>LITHO_MODE</code> when set; otherwise live requires both
+<code>GROQ_API_KEY</code> and <code>DEEPSEEK_API_KEY</code>, and falls back to demo. The banner
+always states the active mode and, when live is requested without keys, why it fell back.</p>
+
+<table>
+  <thead><tr><th style="width:18%">Concern</th><th>Demo</th><th>Live</th></tr></thead>
+  <tbody>
+    <tr><td>Data</td><td>Recorded results and cached traces</td><td>Real Groq / Ollama / DeepSeek calls</td></tr>
+    <tr><td>Keys required</td><td>None</td><td>Groq, DeepSeek, Ollama</td></tr>
+    <tr><td>Rate limit</td><td>Not applied</td><td>20 calls/minute per session by default</td></tr>
+    <tr><td>Prompt logging</td><td>Off</td><td>Off unless <code>LITHO_LOG=1</code></td></tr>
+    <tr><td>Mock labels</td><td>Visible MOCK / NOT YET RUN</td><td>Not applicable</td></tr>
+  </tbody>
+</table>
+
+<h2>14.2 What is wired live today</h2>
+<table>
+  <thead><tr><th style="width:32%">Surface</th><th>Status</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Assistant</td><td><span class="badge ok">live</span></td><td>Runs A8 and shows structured chunks, citations and validator state.</td></tr>
+    <tr><td>Arm Playground</td><td><span class="badge ok">live</span></td><td>Builds selected arms with real clients; A0&ndash;A8.</td></tr>
+    <tr><td>Benchmark / Dataset</td><td><span class="badge mock">recorded</span></td><td>Reads <code>results/</code>; labels mock and blocked files.</td></tr>
+    <tr><td>Safety Lab</td><td><span class="badge draft">demo logic</span></td><td>Uses rule-based decisions for the interactive demonstration.</td></tr>
+    <tr><td>Geometry text-to-commands</td><td><span class="badge draft">demo logic</span></td><td>Parses JSON; the live agent path is not yet wired into the lab.</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <span class="label teal">Design choice</span>
+  The demo-first build is not a shortcut; it is what makes the project reviewable. A reviewer can
+  inspect every chart and page without spending money, installing Ollama, or launching Unreal.
+  Live mode is then an explicit, consented escalation.
+</div>
+
+<h2>14.3 Operational safeguards</h2>
+<ul>
+  <li><strong>Secrets:</strong> Streamlit secrets are copied into environment variables with <code>setdefault</code>; keys are never rendered.</li>
+  <li><strong>Rate limiting:</strong> <code>allow_live_call()</code> keeps a 60-second sliding window per session.</li>
+  <li><strong>Prompt logging:</strong> disabled by default; when enabled, one line per prompt under <code>.cache/</code>.</li>
+  <li><strong>Caching:</strong> <code>st.cache_resource</code> for the graph, index and arms; <code>st.cache_data</code> for result files.</li>
+  <li><strong>Graceful failure:</strong> live errors are shown as errors, never replaced with fabricated answers.</li>
+</ul>
+
+<!-- ============================ 15. CONFIG ============================ -->
+<h1 class="sec"><span class="num">15</span>Configuration, secrets and cost</h1>
+
+<h2>15.1 Environment variables</h2>
+<table class="compact">
+  <thead><tr><th style="width:26%">Variable</th><th>Purpose</th><th>Default</th></tr></thead>
+  <tbody>
+    <tr><td><code>GROQ_API_KEY</code></td><td>Orchestrator and router models.</td><td>none</td></tr>
+    <tr><td><code>DEEPSEEK_API_KEY</code></td><td>Product DeepEval judge and default drafting model.</td><td>none</td></tr>
+    <tr><td><code>LITHO_MODE</code></td><td>Force <code>demo</code> or <code>live</code>; otherwise inferred from keys.</td><td>inferred</td></tr>
+    <tr><td><code>LITHO_MAILBOX_DIR</code></td><td>Directory for <code>unreal_mailbox.json</code>.</td><td><code>./runtime/unreal_mailbox</code></td></tr>
+    <tr><td><code>LITHO_AUDIO_PATH</code></td><td>WAV file written by Unreal&rsquo;s mic manager.</td><td><code>./runtime/UserAudioInput.wav</code></td></tr>
+    <tr><td><code>LITHO_MAX_SIZE</code></td><td>Maximum geometry size.</td><td><code>5000</code></td></tr>
+    <tr><td><code>LITHO_ACK_TIMEOUT_S</code></td><td>Unreal acknowledgement timeout.</td><td><code>5</code></td></tr>
+    <tr><td><code>LITHO_RATE_LIMIT</code></td><td>Live calls per minute per session.</td><td><code>20</code></td></tr>
+    <tr><td><code>LITHO_LOG</code></td><td>Set to <code>1</code> to log prompts.</td><td>off</td></tr>
+    <tr><td><code>LANGCHAIN_TRACING_V2</code>, <code>LANGCHAIN_API_KEY</code>, <code>LANGCHAIN_PROJECT</code></td><td>Optional LangSmith tracing.</td><td>off</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <span class="label teal">Mode semantics</span>
+  <code>LITHO_MODE</code> accepts <code>demo</code> or <code>live</code>. If it is unset or
+  invalid, the app chooses live only when both <code>GROQ_API_KEY</code> and
+  <code>DEEPSEEK_API_KEY</code> are present; otherwise it runs demo. A live request without keys
+  falls back to demo and shows the reason in the banner.
+</div>
+
+<h2>15.2 Model prices and cost accounting</h2>
+<p><code>configs/prices.yaml</code> stores USD per million tokens. The client computes:</p>
+<pre><code>cost = prompt_tokens / 1,000,000 * input_per_million
+     + completion_tokens / 1,000,000 * output_per_million</code></pre>
+<p>A missing model or a null price raises <code>MissingPriceError</code> before the first call.
+That prevents a silent zero-cost report. DeepSeek prices are intentionally blank because they are
+time-of-day dependent and the account has no balance in this environment; the default evaluation
+judge is therefore Groq Qwen.</p>
+
+<table>
+  <thead><tr><th>Model</th><th class="num">Input / M</th><th class="num">Output / M</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td><code>openai/gpt-oss-120b</code></td><td class="num">$0.15</td><td class="num">$0.60</td><td>Groq list price, checked 2026-11-26.</td></tr>
+    <tr><td><code>openai/gpt-oss-20b</code></td><td class="num">$0.075</td><td class="num">$0.30</td><td>Groq list price.</td></tr>
+    <tr><td><code>groq/qwen/qwen3.8-27b</code></td><td class="num">$0.80</td><td class="num">$4.00</td><td>Default evaluation judge.</td></tr>
+    <tr><td><code>deepseek/deepseek-chat</code></td><td class="num">&mdash;</td><td class="num">&mdash;</td><td>Blank until prices are filled and the account is funded.</td></tr>
+  </tbody>
+</table>
+
+<h2>15.3 Arm configuration</h2>
+<p><code>configs/arms.yaml</code> is the single source of truth for models, index settings, the
+optional sweep grid and the nine arm definitions. The runner reads it, applies command-line
+overrides, and records a SHA-256 of the file in the result. Two runs are comparable only when the
+dataset hash and the config hash match.</p>
+
+<h2>15.4 Regression tolerances</h2>
+<p><code>configs/gate.yaml</code> lists the headline metrics and the allowed absolute drop versus
+a committed baseline: answer correctness, faithfulness and recall@k, each with a 0.02 tolerance,
+plus citation coverage. The gate is intentionally absolute rather than relative, so a 2-point drop
+means the same thing at any baseline level.</p>
+
+<!-- ============================ 16. DEPLOYMENT ============================ -->
+<h1 class="sec"><span class="num">16</span>Deployment</h1>
+
+<div class="diagram">
+<svg viewBox="0 0 940 330" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a7" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect class="svg-box" x="20" y="30" width="170" height="70" rx="7"/>
+  <text class="svg-t-b" x="105" y="57" text-anchor="middle">Browser</text>
+  <text class="svg-t-s" x="105" y="75" text-anchor="middle">user, chat, voice</text>
+  <text class="svg-t-s" x="105" y="89" text-anchor="middle">HTTPS</text>
+
+  <rect class="svg-box-navy" x="250" y="12" width="340" height="260" rx="9"/>
+  <text class="svg-t-w" x="420" y="38" text-anchor="middle">Streamlit container</text>
+  <text class="svg-t-s" x="420" y="55" text-anchor="middle" fill="#c7dceb">python:3.12-slim &middot; port 8501</text>
+
+  <rect class="svg-box-teal" x="275" y="75" width="290" height="48" rx="6"/>
+  <text class="svg-t-b" x="420" y="95" text-anchor="middle">UI pages + state</text>
+  <text class="svg-t-s" x="420" y="111" text-anchor="middle">demo / live banner, rate limit</text>
+
+  <rect class="svg-box" x="275" y="138" width="290" height="48" rx="6"/>
+  <text class="svg-t-b" x="420" y="158" text-anchor="middle">LangGraph agent + tools</text>
+  <text class="svg-t-s" x="420" y="174" text-anchor="middle">guardrail, router, retrieval, geometry</text>
+
+  <rect class="svg-box-grey" x="275" y="201" width="290" height="48" rx="6"/>
+  <text class="svg-t-b" x="420" y="221" text-anchor="middle">Mounted volumes</text>
+  <text class="svg-t-s" x="420" y="237" text-anchor="middle">Chroma, mailbox, runtime audio</text>
+
+  <rect class="svg-box" x="650" y="30" width="260" height="58" rx="7"/>
+  <text class="svg-t-b" x="780" y="54" text-anchor="middle">Groq API</text>
+  <text class="svg-t-s" x="780" y="72" text-anchor="middle">gpt-oss / qwen judge</text>
+
+  <rect class="svg-box" x="650" y="110" width="260" height="58" rx="7"/>
+  <text class="svg-t-b" x="780" y="134" text-anchor="middle">Ollama (local or host)</text>
+  <text class="svg-t-s" x="780" y="152" text-anchor="middle">bge-m3 embeddings</text>
+
+  <rect class="svg-box" x="650" y="190" width="260" height="58" rx="7"/>
+  <text class="svg-t-b" x="780" y="214" text-anchor="middle">Unreal Engine 5 host</text>
+  <text class="svg-t-s" x="780" y="232" text-anchor="middle">shared mailbox directory</text>
+
+  <line class="svg-line" x1="190" y1="65" x2="250" y2="90" marker-end="url(#a7)"/>
+  <line class="svg-line" x1="590" y1="100" x2="650" y2="62" marker-end="url(#a7)"/>
+  <line class="svg-line" x1="590" y1="161" x2="650" y2="139" marker-end="url(#a7)"/>
+  <line class="svg-line" x1="590" y1="225" x2="650" y2="219" marker-end="url(#a7)"/>
+</svg>
+</div>
+<div class="caption">Figure 7 &mdash; Deployment topology. Demo mode works entirely inside the container; live mode adds three external dependencies.</div>
+
+<h2>16.1 Local</h2>
+<pre><code>python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+streamlit run src/ui/app.py</code></pre>
+<p>For live mode, also run <code>ollama pull bge-m3:latest</code>, build the Chroma index with
+<code>python our_database/load_txt.py</code>, and set the keys in <code>.env</code>.</p>
+
+<h2>16.2 Docker</h2>
+<pre><code>docker build -t litho-rag .
+docker run -p 8501:8501 litho-rag</code></pre>
+<p>The image uses Python 3.12, installs <code>requirements.txt</code>, exposes 8501 and defines a
+health check against <code>/_stcore/health</code>. A live container also needs the Chroma and
+mailbox volumes mounted and network access to Ollama and Groq.</p>
+
+<h2>16.3 Streamlit Community Cloud</h2>
+<ul>
+  <li>Main file path: <code>src/ui/app.py</code>.</li>
+  <li>Install from <code>requirements.txt</code>.</li>
+  <li>Copy <code>.streamlit/secrets.toml.example</code> into the app secrets.</li>
+  <li>Demo mode needs no secrets; live mode needs at least the Groq and DeepSeek keys.</li>
+</ul>
+
+<h2>16.4 Health and failure behaviour</h2>
+<p>The Streamlit health endpoint returns <code>200 ok</code> on a fresh port. Demo mode has no
+external dependency and is therefore the safe default for a public deployment. Live mode without
+keys falls back to demo with a visible reason. The rate limiter protects a public app from
+accidental cost spikes, and prompt logging is opt-in so user text is not persisted by default.</p>
+
+<div class="warn">
+  <span class="label amber">Verified vs unverified</span>
+  The server health check and Dockerfile were exercised locally. The Docker image itself was not
+  built in this environment because the Docker daemon was not running. State that honestly rather
+  than claiming a successful container build.
+</div>
