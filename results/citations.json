@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0",
+  "status": "blocked",
+  "reason": "A5/A8 results are mock; run real arms first",
+  "a8_vs_a5": null,
+  "timestamp": "2026-11-26T17:53:19.222889+00:00"
+}

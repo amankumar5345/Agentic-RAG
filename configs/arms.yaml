@@ -1,0 +1,46 @@
+# LithoBench RAG arms. One chunk index per chunking setting is reused.
+
+generator_model: openai/gpt-oss-120b
+judge_model: groq/qwen/qwen3.8-27b
+temperature: 0.0
+seed: 42
+
+index:
+  chunk_size: 1000
+  chunk_overlap: 150
+  embedding_model: bge-m3:latest
+
+# Optional sweeps; disabled by default.
+sweeps:
+  enabled: false
+  chunk_sizes: [500, 1000, 1500]
+  overlap_ratio: 0.15
+  embedding_models: ["bge-m3:latest", "nomic-embed-text:latest"]
+
+arms:
+  A0:
+    kind: closed_book
+  A1:
+    kind: dense
+    top_k: 7
+  A2:
+    kind: bm25
+    top_k: 7
+  A3:
+    kind: hybrid
+    top_k: 7
+    candidate_k: 25
+  A4:
+    kind: hybrid_rerank
+    top_k: 7
+    candidate_k: 25
+  A5:
+    kind: agent
+  A6:
+    kind: agent
+    router: false
+  A7:
+    kind: agent
+    guardrail: false
+  A8:
+    kind: agent_citations

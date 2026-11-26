@@ -1,0 +1,491 @@
+{
+  "schema_version": "1.0",
+  "arm": "A2",
+  "arm_kind": "mock",
+  "split": "dev",
+  "timestamp": "2026-11-26T17:42:09.306990+00:00",
+  "git_commit": "6162e79e1bf08ddd5131bedfac111bcc8b4f66d2",
+  "config_hash": "0da0503579759b0f98811d1fb53ca95fd8750d9e2d81cf5c05de5ed573dd1988",
+  "config": {
+    "arm": "A2",
+    "split": "dev",
+    "generator_model": "openai/gpt-oss-120b",
+    "judge_model": "groq/qwen/qwen3.8-27b",
+    "top_k": 7,
+    "temperature": 0.0,
+    "seed": 42,
+    "limit": 5,
+    "mock": true,
+    "data_dir": "C:\\Users\\stark\\OneDrive\\Desktop\\New Project\\Agentic-RAG\\bench\\data",
+    "corpus_path": "C:\\Users\\stark\\OneDrive\\Desktop\\New Project\\Agentic-RAG\\our_database\\all_contents.txt",
+    "prices_path": "C:\\Users\\stark\\OneDrive\\Desktop\\New Project\\Agentic-RAG\\configs\\prices.yaml",
+    "judge_prompt_path": "C:\\Users\\stark\\OneDrive\\Desktop\\New Project\\Agentic-RAG\\configs\\judge_prompt.md",
+    "arms_config_path": "C:\\Users\\stark\\OneDrive\\Desktop\\New Project\\Agentic-RAG\\configs\\arms.yaml",
+    "chunk_size": 1000,
+    "chunk_overlap": 150,
+    "embedding_model": "bge-m3:latest",
+    "judge_prompt_sha256": "b2d207446d74d67c93f0999f3e3f8e78ca1fec95fd67c318a8e37e0030ba7870",
+    "prices_sha256": "5640749f16a98fedfa8b8aa4b7668c505458d66dcdb7c3bca06eb41845bc0142",
+    "arms_config_sha256": "37d78ab444ae8f8867b701820ff2c508f58eb9bc3d0274c39de17a8ff33593e6"
+  },
+  "models": {
+    "generator": "openai/gpt-oss-120b",
+    "judge": "groq/qwen/qwen3.8-27b"
+  },
+  "seed": 42,
+  "mock": true,
+  "dataset_hash": "a69fdcb6a08a18b4ff678af0a054628d416bf09c79f329628a99764e6214542b",
+  "aggregates": {
+    "n_cases": 5,
+    "n_answerable": 5,
+    "n_unanswerable": 0,
+    "retrieval": {
+      "k": 7,
+      "recall_at_k": 1.0,
+      "recall_at_k_ci95": [
+        1.0,
+        1.0
+      ],
+      "hit_at_k": 1.0,
+      "mrr": 1.0
+    },
+    "answer_correctness": 1.0,
+    "answer_correctness_ci95": [
+      0.5655085052479191,
+      1.0
+    ],
+    "faithfulness": 1.0,
+    "faithfulness_ci95": [
+      1.0,
+      1.0
+    ],
+    "abstention": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "n_unanswerable": 0,
+      "n_predicted_abstention": 0
+    },
+    "latency_s": {
+      "p50": 0.0018992000259459019,
+      "p95": 0.0037247399799525734,
+      "mean": 0.0021234400104731322,
+      "n": 5
+    },
+    "cost_usd": {
+      "total": 0.0,
+      "per_correct_answer": 0.0,
+      "tracked": true
+    },
+    "tokens": {
+      "prompt": 3034,
+      "completion": 87
+    }
+  },
+  "cases": [
+    {
+      "id": "qa-007dfc63c6",
+      "type": "qa",
+      "subtype": "single_hop",
+      "split": "dev",
+      "input": "What are the possible applications of the 'Nickel-like' Samarium laser mentioned in the table?",
+      "output": "possible applications in high resolution microscopy and holography, operation is close to the \"water window\" at 2.2 to 4.4nm where observation of DNA structure and the action of viruses and drugs on cells can be examined.",
+      "retrieved": [
+        {
+          "id": "gold-0",
+          "text": "| \"Nickel-like\" Samarium laser                            | X-rays at 7.3 nm wavelength                                                                                          | Lasing in ultra-hot samarium plasma formed by double pulse terawatt scale irradiation fluences created by Rutherford Appleton Laboratory's Nd:glass Vulcan laser. [3] | First demonstration of efficient \"saturated\" operation of a sub-10 nm X-ray laser, possible applications in high resolution microscopy and holography, operation is close to the \"water window\" at 2.2 to 4.4nm where observation of DNA structure and the action of viruses and drugs on cells can be examined. |",
+          "doc": "laser_safety_v4.pdf",
+          "section": "Other types of lasers",
+          "char_start": 2000088,
+          "char_end": 2000741,
+          "score": 0.0
+        }
+      ],
+      "citations": [
+        {
+          "doc": "laser_safety_v4.pdf",
+          "section": "Other types of lasers",
+          "char_start": 2000088,
+          "char_end": 2000741
+        }
+      ],
+      "retrieval_calls": 1,
+      "gold_sources": [
+        {
+          "doc": "laser_safety_v4.pdf",
+          "section": "Other types of lasers",
+          "char_start": 2000088,
+          "char_end": 2000741,
+          "text_hash": "73026d1f6e13cbd16579fd5c3883a2fe6d9cef00002dd76df576ce595f223ad1"
+        }
+      ],
+      "retrieval": {
+        "recall_at_k": 1.0,
+        "hit_at_k": 1.0,
+        "mrr": 1.0,
+        "k": 7,
+        "n_gold": 1
+      },
+      "correctness": {
+        "correct": true,
+        "reason": "mock"
+      },
+      "faithfulness": {
+        "score": 1.0,
+        "claims": [
+          "Mock claim one.",
+          "Mock claim two."
+        ],
+        "supported": [
+          true,
+          true
+        ]
+      },
+      "judge_responses": [
+        "{\"correct\": true, \"reason\": \"mock\"}",
+        "{\"claims\": [\"Mock claim one.\", \"Mock claim two.\"]}",
+        "{\"supported\": true, \"reason\": \"mock\"}",
+        "{\"supported\": true, \"reason\": \"mock\"}"
+      ],
+      "latencies": {
+        "retrieval_s": 0.0,
+        "generation_s": 0.0,
+        "total_s": 0.004093799972906709,
+        "judge_s": 0.004093799972906709
+      },
+      "tokens": {
+        "prompt": 522,
+        "completion": 19
+      },
+      "cost_usd": 0.0,
+      "mock": true
+    },
+    {
+      "id": "qa-050a05dc34",
+      "type": "qa",
+      "subtype": "single_hop",
+      "split": "dev",
+      "input": "What specific materials are typically appropriate for cleaning laser eye protection lenses?",
+      "output": "Typical eyewear lens wipes are usually appropriate for use, along with microfiber cloths.",
+      "retrieved": [
+        {
+          "id": "gold-0",
+          "text": "<!-- image -->\n\n<!-- image -->\n\n## APPENDIX I: Laser Eye Protection Cleaning and Inspections\n\nIf any of the inspection items below reveal suspicious conditions, discard the eyewear and obtain a new pair.  If there are any questions, contact the LSO and they can consult with the manufacturer.\n\n- Inspect for light leaks and filter coating damage\n- Inspect the frame for mechanical integrity\n- Inspect goggles for lost ventilation port plugs, deformation of the facepiece, and stretching of the headstrap\n- Inspect the attenuation material of the lenses for pitting, crazing, cracking, discoloration, delamination, or lifting of dielectric coatings\n- Periodically  clean  the  laser  eye  protection;  be  careful  so  that  the  filter  material  is  not damaged.    Typical  eyewear  lens  wipes  are  usually  appropriate  for  use,  along  with microfiber  cloths.    Consult  the  eyewear  manufacturer  for  their  instructions  on  proper cleaning methods.",
+          "doc": "gt_laser_safety_policy_4.pdf",
+          "section": "APPENDIX H: Common Causes of Accidental Eye and Skin Exposure",
+          "char_start": 1349625,
+          "char_end": 1350587,
+          "score": 0.0
+        }
+      ],
+      "citations": [
+        {
+          "doc": "gt_laser_safety_policy_4.pdf",
+          "section": "APPENDIX H: Common Causes of Accidental Eye and Skin Exposure",
+          "char_start": 1349625,
+          "char_end": 1350587
+        }
+      ],
+      "retrieval_calls": 1,
+      "gold_sources": [
+        {
+          "doc": "gt_laser_safety_policy_4.pdf",
+          "section": "APPENDIX H: Common Causes of Accidental Eye and Skin Exposure",
+          "char_start": 1349625,
+          "char_end": 1350587,
+          "text_hash": "a4b1e967a7699aaaf5a949f5f0ab07c8494887303251fa4090d853a6bc041abc"
+        }
+      ],
+      "retrieval": {
+        "recall_at_k": 1.0,
+        "hit_at_k": 1.0,
+        "mrr": 1.0,
+        "k": 7,
+        "n_gold": 1
+      },
+      "correctness": {
+        "correct": true,
+        "reason": "mock"
+      },
+      "faithfulness": {
+        "score": 1.0,
+        "claims": [
+          "Mock claim one.",
+          "Mock claim two."
+        ],
+        "supported": [
+          true,
+          true
+        ]
+      },
+      "judge_responses": [
+        "{\"correct\": true, \"reason\": \"mock\"}",
+        "{\"claims\": [\"Mock claim one.\", \"Mock claim two.\"]}",
+        "{\"supported\": true, \"reason\": \"mock\"}",
+        "{\"supported\": true, \"reason\": \"mock\"}"
+      ],
+      "latencies": {
+        "retrieval_s": 0.0,
+        "generation_s": 0.0,
+        "total_s": 0.0018992000259459019,
+        "judge_s": 0.0018992000259459019
+      },
+      "tokens": {
+        "prompt": 567,
+        "completion": 19
+      },
+      "cost_usd": 0.0,
+      "mock": true
+    },
+    {
+      "id": "qa-105d223784",
+      "type": "qa",
+      "subtype": "multi_hop",
+      "split": "dev",
+      "input": "According to the laser safety classification system, what specific hazard is associated with the power level of lasers that exceed the 500mW limit of Class IIIb, and how does this power threshold relate to the operational parameters of the Extreme Ultraviolet (EUV) lithography process described in the context of area selective deposition?",
+      "output": "Lasers exceeding the 500mW limit of Class IIIb are classified as Class IV, which are capable of causing severe eye damage with short duration exposures (0.25 seconds) to the direct, specularly, or diffusely reflected beam, as well as severe skin damage. The EUV lithography process described uses a wavelength of 13.5 nm for single-step patterning of self-assembled single molecular layers (SAM) on photosensitive substrates, followed by atomic layer deposition (ALD) for hard masks.",
+      "retrieved": [
+        {
+          "id": "gold-0",
+          "text": "2.1.2. Application. Extreme ultraviolet  (EUV)  lithography,  which  uses  a  wavelength  of  13.5  nm,  is considered one of the most prominent candidates for next-generation lithography[6]. Jayant K. Lodha et al.'s bottom-up process for preparing nanodevices by area selective deposition (ASD) is overtaking top-down  approaches,  using  extreme  ultraviolet  (EUV,  \u03bb-13.5  nm)  lithography  for  single-step patterning  of  self-assembled  single  molecular  layers  (SAM)  on  photosensitive  substrates  (or  layers) followed by atomic layer deposition (ALD) for hard masks ASD with selective deposition of Ru hard mask  layers  by  ASD  to  alleviate  edge  placement  errors,  reduced  throughput,  complexity,  pattern collapse,  and  limitations  due  to  photoresist  inhomogeneities.  They  used  photocatalytically  active titanium  oxide  as  a  substrate  for  depositing  organosilane  SAMs  of  different  chain  lengths[7].  After exposure  to  EUV,  a  break  in  the  SAM",
+          "doc": "Tian_2023_J._Phys.__Conf._Ser._2608_012016 (2).pdf",
+          "section": "2.1.  Laser projection lithography",
+          "char_start": 3348321,
+          "char_end": 3349312,
+          "score": 0.0
+        },
+        {
+          "id": "gold-1",
+          "text": "## Class IV\n\n- \uf0b7 Power exceeds Class IIIb limits of 500mW.\n- \uf0b7 High-powered lasers and laser systems capable of causing severe eye damage with short duration exposures (0.25 seconds) to the direct, specularly, or diffusely reflected beam.\n- \uf0b7 Capable of causing severe skin damage.\n- \uf0b7 Can ignite flammable and combustible materials.\n- \uf0b7 May produce laser generated air contaminants or hazardous plasma radiation.\n- \uf0b7 Class IV lasers shall have a 'Danger' sign posted on the outside of the door.\n\n<!-- image -->\n\n<!-- image -->\n\n<!-- image -->\n\nThe larger part of the lasers in the chemistry department is marked according to this system.\n\nEvery laser user in the department must be aware which class is the laser they are working with.\n\n<!-- image -->\n\n<!-- image -->\n\n<!-- image -->\n\n<!-- image -->\n\n<!-- image -->\n\n## The revised classification system\n\n## Class 1",
+          "doc": "laser_safety_v4.pdf",
+          "section": "Class IV",
+          "char_start": 1938185,
+          "char_end": 1939051,
+          "score": 0.0
+        }
+      ],
+      "citations": [
+        {
+          "doc": "Tian_2023_J._Phys.__Conf._Ser._2608_012016 (2).pdf",
+          "section": "2.1.  Laser projection lithography",
+          "char_start": 3348321,
+          "char_end": 3349312
+        },
+        {
+          "doc": "laser_safety_v4.pdf",
+          "section": "Class IV",
+          "char_start": 1938185,
+          "char_end": 1939051
+        }
+      ],
+      "retrieval_calls": 1,
+      "gold_sources": [
+        {
+          "doc": "Tian_2023_J._Phys.__Conf._Ser._2608_012016 (2).pdf",
+          "section": "2.1.  Laser projection lithography",
+          "char_start": 3348321,
+          "char_end": 3349312,
+          "text_hash": "5a1c485d5b0237f91cdd9d448462a6e2e4e2b7aac713afb1d9bd7719ec33c316"
+        },
+        {
+          "doc": "laser_safety_v4.pdf",
+          "section": "Class IV",
+          "char_start": 1938185,
+          "char_end": 1939051,
+          "text_hash": "e722b14e18f0a8e4e51b79e0f24bb090380b50387dd81a8c086c5dc05215fa02"
+        }
+      ],
+      "retrieval": {
+        "recall_at_k": 1.0,
+        "hit_at_k": 1.0,
+        "mrr": 1.0,
+        "k": 7,
+        "n_gold": 2
+      },
+      "correctness": {
+        "correct": true,
+        "reason": "mock"
+      },
+      "faithfulness": {
+        "score": 1.0,
+        "claims": [
+          "Mock claim one.",
+          "Mock claim two."
+        ],
+        "supported": [
+          true,
+          true
+        ]
+      },
+      "judge_responses": [
+        "{\"correct\": true, \"reason\": \"mock\"}",
+        "{\"claims\": [\"Mock claim one.\", \"Mock claim two.\"]}",
+        "{\"supported\": true, \"reason\": \"mock\"}",
+        "{\"supported\": true, \"reason\": \"mock\"}"
+      ],
+      "latencies": {
+        "retrieval_s": 0.0,
+        "generation_s": 0.0,
+        "total_s": 0.002248500008136034,
+        "judge_s": 0.002248500008136034
+      },
+      "tokens": {
+        "prompt": 1057,
+        "completion": 19
+      },
+      "cost_usd": 0.0,
+      "mock": true
+    },
+    {
+      "id": "qa-12da105f66",
+      "type": "qa",
+      "subtype": "numeric",
+      "split": "dev",
+      "input": "What is the area of the experimental results of the corresponding photoresist grating in square micrometers?",
+      "output": "55",
+      "retrieved": [
+        {
+          "id": "gold-0",
+          "text": "Apart from the above parameters, the effect of the polarization state on the pattern formation was investigated. Jianfang He et al. [29] discussed the relevant research by placing a half-wave plate at the input coupling or in front of the binding end of three fibers in triple-beam interference. It is a rectangular triangle interference distribution pattern and the azimuthal angles are 0 \u25e6 , 90 \u25e6 , 270 \u25e6 , as shown in Figure 3a. The polarization direction of the initial vertically polarized 325 nm laser beam was varied from \u03b1 = 0 to 90 degrees in steps of 10 degrees. Where \u03b1 is the angle of the in-plane polarization direction relative to the vertical axis perpendicular to the axis of the fiber beam. Figure 3b shows the simulation results of the interference pattern within the 22 \u00b5 m 2 region, and Figure 3c shows the experimental results of the corresponding photoresist grating, with an area of 55 \u00b5 m 2 . It can be seen that by increasing the value of \u03b1 , the dot units become slender",
+          "doc": "nanomaterials-13-01818.pdf",
+          "section": "2.2.4. The Polarization State",
+          "char_start": 2289543,
+          "char_end": 2290539,
+          "score": 0.0
+        }
+      ],
+      "citations": [
+        {
+          "doc": "nanomaterials-13-01818.pdf",
+          "section": "2.2.4. The Polarization State",
+          "char_start": 2289543,
+          "char_end": 2290539
+        }
+      ],
+      "retrieval_calls": 1,
+      "gold_sources": [
+        {
+          "doc": "nanomaterials-13-01818.pdf",
+          "section": "2.2.4. The Polarization State",
+          "char_start": 2289543,
+          "char_end": 2290539,
+          "text_hash": "177fabf977ba2f7c16cd1193d279f10aef40640a4d8bdf4455dcccbb54d87589"
+        }
+      ],
+      "retrieval": {
+        "recall_at_k": 1.0,
+        "hit_at_k": 1.0,
+        "mrr": 1.0,
+        "k": 7,
+        "n_gold": 1
+      },
+      "correctness": {
+        "correct": true,
+        "reason": "numeric exact match"
+      },
+      "faithfulness": {
+        "score": 1.0,
+        "claims": [
+          "Mock claim one.",
+          "Mock claim two."
+        ],
+        "supported": [
+          true,
+          true
+        ]
+      },
+      "judge_responses": [
+        "{\"claims\": [\"Mock claim one.\", \"Mock claim two.\"]}",
+        "{\"supported\": true, \"reason\": \"mock\"}",
+        "{\"supported\": true, \"reason\": \"mock\"}"
+      ],
+      "latencies": {
+        "retrieval_s": 0.0,
+        "generation_s": 0.0,
+        "total_s": 0.0013585000415332615,
+        "judge_s": 0.0013585000415332615
+      },
+      "tokens": {
+        "prompt": 475,
+        "completion": 15
+      },
+      "cost_usd": 0.0,
+      "mock": true
+    },
+    {
+      "id": "qa-13720686f1",
+      "type": "qa",
+      "subtype": "numeric",
+      "split": "dev",
+      "input": "How often must laser users complete refresher training?",
+      "output": "3",
+      "retrieved": [
+        {
+          "id": "gold-0",
+          "text": "- \uf0b7 Follow written standard operating procedures\n- \uf0b7 All laser users complete laser safety. They complete refresher training every 3 years\n- \uf0b7 Hands-on beam alignment training should be administered by the supervisors and documented\n- \uf0b7 Level of training provided by the supervisors should be commensurate with the hazard\n- \uf0b7 Activate a visual or audible indicator prior to emission of the beam\n- \uf0b7 Operate lasers in well lighted areas whenever possible to reduce pupil size and minimize possible eye damage\n- \uf0b7 Post the laser area with warning signs\n- \uf0b7 Use remote firing with video monitoring or other remote viewing techniques when feasible\n- \uf0b7 Remove reflective materials (watches, rings, etc.) from the beam path\n- \uf0b7 Locate and block all unwanted reflectors at each optical element\n- \uf0b7 Terminate laser beam with beam trap\n- \uf0b7 Block beam before adding optical elements",
+          "doc": "laser-safety-manual (1).pdf",
+          "section": "10.11   Laser Safety Tips (Post this near Laser)",
+          "char_start": 1690224,
+          "char_end": 1691096,
+          "score": 0.0
+        }
+      ],
+      "citations": [
+        {
+          "doc": "laser-safety-manual (1).pdf",
+          "section": "10.11   Laser Safety Tips (Post this near Laser)",
+          "char_start": 1690224,
+          "char_end": 1691096
+        }
+      ],
+      "retrieval_calls": 1,
+      "gold_sources": [
+        {
+          "doc": "laser-safety-manual (1).pdf",
+          "section": "10.11   Laser Safety Tips (Post this near Laser)",
+          "char_start": 1690224,
+          "char_end": 1691096,
+          "text_hash": "d30d2f20ae54b375983968e79f8fed967cf951b45facd14a20f1e46873dfded9"
+        }
+      ],
+      "retrieval": {
+        "recall_at_k": 1.0,
+        "hit_at_k": 1.0,
+        "mrr": 1.0,
+        "k": 7,
+        "n_gold": 1
+      },
+      "correctness": {
+        "correct": true,
+        "reason": "numeric exact match"
+      },
+      "faithfulness": {
+        "score": 1.0,
+        "claims": [
+          "Mock claim one.",
+          "Mock claim two."
+        ],
+        "supported": [
+          true,
+          true
+        ]
+      },
+      "judge_responses": [
+        "{\"claims\": [\"Mock claim one.\", \"Mock claim two.\"]}",
+        "{\"supported\": true, \"reason\": \"mock\"}",
+        "{\"supported\": true, \"reason\": \"mock\"}"
+      ],
+      "latencies": {
+        "retrieval_s": 0.0,
+        "generation_s": 0.0,
+        "total_s": 0.0010172000038437545,
+        "judge_s": 0.0010172000038437545
+      },
+      "tokens": {
+        "prompt": 413,
+        "completion": 15
+      },
+      "cost_usd": 0.0,
+      "mock": true
+    }
+  ]
+}

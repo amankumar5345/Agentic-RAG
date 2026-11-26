@@ -1,0 +1,931 @@
+{
+  "schema_version": "1.0",
+  "status": "ok",
+  "mock": true,
+  "timestamp": "2026-11-26T17:49:17.015227+00:00",
+  "ue_mode": "fake",
+  "metrics": {
+    "schema_valid": {
+      "rate": 1.0,
+      "ci95": [
+        1.0,
+        1.0
+      ],
+      "n": 11
+    },
+    "exact_match": {
+      "rate": 0.7272727272727273,
+      "ci95": [
+        0.45454545454545453,
+        1.0
+      ],
+      "n": 11
+    },
+    "geometric_match": {
+      "rate": 0.7272727272727273,
+      "ci95": [
+        0.45454545454545453,
+        1.0
+      ],
+      "n": 11
+    },
+    "clarification_correctness": {
+      "rate": 1.0,
+      "ci95": null,
+      "n": 1
+    },
+    "over_trigger": {
+      "rate": 0.0,
+      "ci95": null,
+      "n": 1
+    },
+    "n_cases": 12,
+    "n_drawable": 11,
+    "n_clarification": 1
+  },
+  "by_category": {
+    "angle_words": {
+      "schema_valid": {
+        "rate": 1.0,
+        "ci95": null,
+        "n": 1
+      },
+      "exact_match": {
+        "rate": 0.0,
+        "ci95": null,
+        "n": 1
+      },
+      "geometric_match": {
+        "rate": 0.0,
+        "ci95": null,
+        "n": 1
+      },
+      "clarification_correctness": {
+        "rate": 1.0,
+        "ci95": null,
+        "n": 1
+      },
+      "over_trigger": {
+        "rate": null,
+        "ci95": null,
+        "n": 0
+      },
+      "n_cases": 2,
+      "n_drawable": 1,
+      "n_clarification": 1
+    },
+    "loop": {
+      "schema_valid": {
+        "rate": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ],
+        "n": 5
+      },
+      "exact_match": {
+        "rate": 0.6,
+        "ci95": [
+          0.2,
+          1.0
+        ],
+        "n": 5
+      },
+      "geometric_match": {
+        "rate": 0.6,
+        "ci95": [
+          0.2,
+          1.0
+        ],
+        "n": 5
+      },
+      "clarification_correctness": {
+        "rate": null,
+        "ci95": null,
+        "n": 0
+      },
+      "over_trigger": {
+        "rate": null,
+        "ci95": null,
+        "n": 0
+      },
+      "n_cases": 5,
+      "n_drawable": 5,
+      "n_clarification": 0
+    },
+    "multi_step": {
+      "schema_valid": {
+        "rate": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ],
+        "n": 2
+      },
+      "exact_match": {
+        "rate": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ],
+        "n": 2
+      },
+      "geometric_match": {
+        "rate": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ],
+        "n": 2
+      },
+      "clarification_correctness": {
+        "rate": null,
+        "ci95": null,
+        "n": 0
+      },
+      "over_trigger": {
+        "rate": null,
+        "ci95": null,
+        "n": 0
+      },
+      "n_cases": 2,
+      "n_drawable": 2,
+      "n_clarification": 0
+    },
+    "single": {
+      "schema_valid": {
+        "rate": 1.0,
+        "ci95": null,
+        "n": 1
+      },
+      "exact_match": {
+        "rate": 1.0,
+        "ci95": null,
+        "n": 1
+      },
+      "geometric_match": {
+        "rate": 1.0,
+        "ci95": null,
+        "n": 1
+      },
+      "clarification_correctness": {
+        "rate": null,
+        "ci95": null,
+        "n": 0
+      },
+      "over_trigger": {
+        "rate": null,
+        "ci95": null,
+        "n": 0
+      },
+      "n_cases": 1,
+      "n_drawable": 1,
+      "n_clarification": 0
+    },
+    "synonym": {
+      "schema_valid": {
+        "rate": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ],
+        "n": 2
+      },
+      "exact_match": {
+        "rate": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ],
+        "n": 2
+      },
+      "geometric_match": {
+        "rate": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ],
+        "n": 2
+      },
+      "clarification_correctness": {
+        "rate": null,
+        "ci95": null,
+        "n": 0
+      },
+      "over_trigger": {
+        "rate": null,
+        "ci95": null,
+        "n": 0
+      },
+      "n_cases": 2,
+      "n_drawable": 2,
+      "n_clarification": 0
+    }
+  },
+  "latency": {
+    "ue_mode": "fake",
+    "stages": {
+      "guardrail_s": {
+        "p50": 0.006500000000000001,
+        "p95": 0.011449999999999998,
+        "mean": 0.0065,
+        "n": 12
+      },
+      "routing_s": {
+        "p50": 0.006500000000000001,
+        "p95": 0.011449999999999998,
+        "mean": 0.0065,
+        "n": 12
+      },
+      "orchestration_s": {
+        "p50": 0.006500000000000001,
+        "p95": 0.011449999999999998,
+        "mean": 0.0065,
+        "n": 12
+      },
+      "tool_call_s": {
+        "p50": 0.006500000000000001,
+        "p95": 0.011449999999999998,
+        "mean": 0.0065,
+        "n": 12
+      },
+      "packet_write_s": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "n": 12
+      },
+      "ack_s": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "n": 12
+      },
+      "total_s": {
+        "p50": 0.026000000000000002,
+        "p95": 0.045799999999999993,
+        "mean": 0.026,
+        "n": 12
+      }
+    },
+    "total": {
+      "p50": 0.026000000000000002,
+      "p95": 0.045799999999999993,
+      "mean": 0.026,
+      "n": 12
+    }
+  },
+  "cases": [
+    {
+      "id": "geo-00ed2a170c",
+      "category": "angle_words",
+      "input": "Draw a horizontal line of length 50.",
+      "gold": [
+        {
+          "shape": "line",
+          "size": 50,
+          "angle": 0
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "line",
+          "size": 80.0,
+          "angle": 0
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": false,
+      "geometric_match": false,
+      "replay_distance": 30.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.001,
+        "routing_s": 0.001,
+        "orchestration_s": 0.001,
+        "tool_call_s": 0.001,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.004
+      }
+    },
+    {
+      "id": "geo-11e9eb9790",
+      "category": "loop",
+      "input": "Draw a spiral of lines that get shorter and rotate 90 degrees each time, starting with a length of 100.",
+      "gold": [
+        {
+          "shape": "line",
+          "size": 100,
+          "angle": 0
+        },
+        {
+          "shape": "line",
+          "size": 50,
+          "angle": 90
+        },
+        {
+          "shape": "line",
+          "size": 25,
+          "angle": 180
+        },
+        {
+          "shape": "line",
+          "size": 12.5,
+          "angle": 270
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "line",
+          "size": 100,
+          "angle": 0
+        },
+        {
+          "shape": "line",
+          "size": 50,
+          "angle": 90
+        },
+        {
+          "shape": "line",
+          "size": 25,
+          "angle": 180
+        },
+        {
+          "shape": "line",
+          "size": 12.5,
+          "angle": 270
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": true,
+      "geometric_match": true,
+      "replay_distance": 0.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.002,
+        "routing_s": 0.002,
+        "orchestration_s": 0.002,
+        "tool_call_s": 0.002,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.008
+      }
+    },
+    {
+      "id": "geo-4d06e0762e",
+      "category": "synonym",
+      "input": "Draw a triangle with a side length of 50 units.",
+      "gold": [
+        {
+          "shape": "polygon",
+          "size": 50,
+          "angle": 0
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "polygon",
+          "size": 50,
+          "angle": 0
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": true,
+      "geometric_match": true,
+      "replay_distance": 0.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.003,
+        "routing_s": 0.003,
+        "orchestration_s": 0.003,
+        "tool_call_s": 0.003,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.012
+      }
+    },
+    {
+      "id": "geo-57b5748a50",
+      "category": "loop",
+      "input": "Draw a spiral of lines that get shorter and rotate 30 degrees each time, starting with a length of 100.",
+      "gold": [
+        {
+          "shape": "line",
+          "size": 100,
+          "angle": 0
+        },
+        {
+          "shape": "line",
+          "size": 90,
+          "angle": 30
+        },
+        {
+          "shape": "line",
+          "size": 80,
+          "angle": 60
+        },
+        {
+          "shape": "line",
+          "size": 70,
+          "angle": 90
+        },
+        {
+          "shape": "line",
+          "size": 60,
+          "angle": 120
+        },
+        {
+          "shape": "line",
+          "size": 50,
+          "angle": 150
+        },
+        {
+          "shape": "line",
+          "size": 40,
+          "angle": 180
+        },
+        {
+          "shape": "line",
+          "size": 30,
+          "angle": 210
+        },
+        {
+          "shape": "line",
+          "size": 20,
+          "angle": 240
+        },
+        {
+          "shape": "line",
+          "size": 10,
+          "angle": 270
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "line",
+          "size": 155.0,
+          "angle": 0
+        },
+        {
+          "shape": "line",
+          "size": 90,
+          "angle": 30
+        },
+        {
+          "shape": "line",
+          "size": 80,
+          "angle": 60
+        },
+        {
+          "shape": "line",
+          "size": 70,
+          "angle": 90
+        },
+        {
+          "shape": "line",
+          "size": 60,
+          "angle": 120
+        },
+        {
+          "shape": "line",
+          "size": 50,
+          "angle": 150
+        },
+        {
+          "shape": "line",
+          "size": 40,
+          "angle": 180
+        },
+        {
+          "shape": "line",
+          "size": 30,
+          "angle": 210
+        },
+        {
+          "shape": "line",
+          "size": 20,
+          "angle": 240
+        },
+        {
+          "shape": "line",
+          "size": 10,
+          "angle": 270
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": false,
+      "geometric_match": false,
+      "replay_distance": 55.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.004,
+        "routing_s": 0.004,
+        "orchestration_s": 0.004,
+        "tool_call_s": 0.004,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.016
+      }
+    },
+    {
+      "id": "geo-59120a045e",
+      "category": "synonym",
+      "input": "Draw a triangle with a side length of 50 pointing up.",
+      "gold": [
+        {
+          "shape": "polygon",
+          "size": 50,
+          "angle": 90
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "polygon",
+          "size": 50,
+          "angle": 90
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": true,
+      "geometric_match": true,
+      "replay_distance": 0.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.005,
+        "routing_s": 0.005,
+        "orchestration_s": 0.005,
+        "tool_call_s": 0.005,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.02
+      }
+    },
+    {
+      "id": "geo-700bfc7d1c",
+      "category": "loop",
+      "input": "Draw a spiral of lines that get shorter and rotate 45 degrees each time, starting with a length of 100.",
+      "gold": [
+        {
+          "shape": "line",
+          "size": 100,
+          "angle": 0
+        },
+        {
+          "shape": "line",
+          "size": 70,
+          "angle": 45
+        },
+        {
+          "shape": "line",
+          "size": 49,
+          "angle": 90
+        },
+        {
+          "shape": "line",
+          "size": 34,
+          "angle": 135
+        },
+        {
+          "shape": "line",
+          "size": 24,
+          "angle": 180
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "line",
+          "size": 100,
+          "angle": 0
+        },
+        {
+          "shape": "line",
+          "size": 70,
+          "angle": 45
+        },
+        {
+          "shape": "line",
+          "size": 49,
+          "angle": 90
+        },
+        {
+          "shape": "line",
+          "size": 34,
+          "angle": 135
+        },
+        {
+          "shape": "line",
+          "size": 24,
+          "angle": 180
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": true,
+      "geometric_match": true,
+      "replay_distance": 0.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.006,
+        "routing_s": 0.006,
+        "orchestration_s": 0.006,
+        "tool_call_s": 0.006,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.024
+      }
+    },
+    {
+      "id": "geo-8f3b3ef532",
+      "category": "loop",
+      "input": "Draw a spiral of lines that get shorter and rotate 45 degrees each time, starting with a length of 100.",
+      "gold": [
+        {
+          "shape": "line",
+          "size": 100,
+          "angle": 0
+        },
+        {
+          "shape": "line",
+          "size": 50,
+          "angle": 45
+        },
+        {
+          "shape": "line",
+          "size": 25,
+          "angle": 90
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "line",
+          "size": 155.0,
+          "angle": 0
+        },
+        {
+          "shape": "line",
+          "size": 50,
+          "angle": 45
+        },
+        {
+          "shape": "line",
+          "size": 25,
+          "angle": 90
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": false,
+      "geometric_match": false,
+      "replay_distance": 55.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.007,
+        "routing_s": 0.007,
+        "orchestration_s": 0.007,
+        "tool_call_s": 0.007,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.028
+      }
+    },
+    {
+      "id": "geo-9dc393e656",
+      "category": "multi_step",
+      "input": "First, draw a circle with a radius of 50. Then, draw a line starting from the center of that circle, going 45 degrees up and to the right, with a length of 100.",
+      "gold": [
+        {
+          "shape": "circle",
+          "size": 50
+        },
+        {
+          "shape": "line",
+          "size": 100,
+          "angle": 45
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "circle",
+          "size": 50
+        },
+        {
+          "shape": "line",
+          "size": 100,
+          "angle": 45
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": true,
+      "geometric_match": true,
+      "replay_distance": 0.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.008,
+        "routing_s": 0.008,
+        "orchestration_s": 0.008,
+        "tool_call_s": 0.008,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.032
+      }
+    },
+    {
+      "id": "geo-a0a15afba8",
+      "category": "multi_step",
+      "input": "First, draw a circle with a radius of 50. Then, draw a line starting from the center of that circle, going 45 degrees up and to the right, with a length of 30.",
+      "gold": [
+        {
+          "shape": "circle",
+          "size": 50
+        },
+        {
+          "shape": "line",
+          "size": 30,
+          "angle": 45
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "circle",
+          "size": 50
+        },
+        {
+          "shape": "line",
+          "size": 30,
+          "angle": 45
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": true,
+      "geometric_match": true,
+      "replay_distance": 0.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.009000000000000001,
+        "routing_s": 0.009000000000000001,
+        "orchestration_s": 0.009000000000000001,
+        "tool_call_s": 0.009000000000000001,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.036000000000000004
+      }
+    },
+    {
+      "id": "geo-b794a330d1",
+      "category": "angle_words",
+      "input": "Draw a line pointing straight up.",
+      "gold": [
+        {
+          "shape": "line",
+          "angle": 90
+        }
+      ],
+      "prediction": null,
+      "expect_clarification": true,
+      "schema_valid": false,
+      "exact_match": false,
+      "geometric_match": false,
+      "replay_distance": null,
+      "clarification_correct": true,
+      "over_trigger": null,
+      "answer": "What size should the shape be?",
+      "latency": {
+        "guardrail_s": 0.01,
+        "routing_s": 0.01,
+        "orchestration_s": 0.01,
+        "tool_call_s": 0.01,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.04
+      }
+    },
+    {
+      "id": "geo-ce1ce9a230",
+      "category": "loop",
+      "input": "Draw a line of length 50 pointing up, then a line of length 25 pointing up, and finally a line of length 12.5 pointing up.",
+      "gold": [
+        {
+          "shape": "line",
+          "size": 50,
+          "angle": 90
+        },
+        {
+          "shape": "line",
+          "size": 25,
+          "angle": 90
+        },
+        {
+          "shape": "line",
+          "size": 12.5,
+          "angle": 90
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "line",
+          "size": 50,
+          "angle": 90
+        },
+        {
+          "shape": "line",
+          "size": 25,
+          "angle": 90
+        },
+        {
+          "shape": "line",
+          "size": 12.5,
+          "angle": 90
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": true,
+      "geometric_match": true,
+      "replay_distance": 0.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.011,
+        "routing_s": 0.011,
+        "orchestration_s": 0.011,
+        "tool_call_s": 0.011,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.044
+      }
+    },
+    {
+      "id": "geo-e4ae201afd",
+      "category": "single",
+      "input": "Draw a circle with a radius of 50 units.",
+      "gold": [
+        {
+          "shape": "circle",
+          "size": 50
+        }
+      ],
+      "prediction": [
+        {
+          "shape": "circle",
+          "size": 50
+        }
+      ],
+      "expect_clarification": false,
+      "schema_valid": true,
+      "exact_match": true,
+      "geometric_match": true,
+      "replay_distance": 0.0,
+      "clarification_correct": false,
+      "over_trigger": null,
+      "answer": "Drawing now.",
+      "latency": {
+        "guardrail_s": 0.012,
+        "routing_s": 0.012,
+        "orchestration_s": 0.012,
+        "tool_call_s": 0.012,
+        "packet_write_s": 0.0,
+        "ack_s": 0.0,
+        "speech_to_text_s": null,
+        "total_s": 0.048
+      }
+    }
+  ]
+}

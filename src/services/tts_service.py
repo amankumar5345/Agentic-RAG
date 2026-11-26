@@ -1,6 +1,8 @@
 import io
 import re
+
 from gtts import gTTS
+
 
 def generate_tts_audio(text: str) -> io.BytesIO:
     """

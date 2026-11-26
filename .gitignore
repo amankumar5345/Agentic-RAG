@@ -6,9 +6,13 @@ uv.lock
 # Virtual Environment & Caches
 .venv/
 __pycache__/
+.cache/
+.pytest_cache/
+.ruff_cache/
 .deepeval/
-.streamlit/
+.streamlit/secrets.toml
 .ipynb_checkpoints/
+results/**/cache/
 
 # Legacy Files & Notebooks
 backend.py
@@ -18,9 +22,11 @@ main.py
 NEMO GUARDRAILS RESOURCES/
 
 # Local Vector Database & Raw PDFs
+chroma_storage/
 our_database/chroma_storage/
 our_database/database_documents/
 
-# Audio & Exchange Files
+# Runtime Exchange Files
+runtime/
 *.wav
 unreal_mailbox.json

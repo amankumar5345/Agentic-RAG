@@ -1,10 +1,8 @@
 import os
 import re
-from langchain_community.document_loaders import PyMuPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_ollama import OllamaEmbeddings
-from langchain_community.vectorstores import Chroma
+
 from docling.document_converter import DocumentConverter
+
 
 def deep_clean_text(text):
     return re.sub(r'[\x00-\x1F\x7F]', '', text)

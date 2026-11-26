@@ -1,0 +1,11 @@
+# Headline metrics and allowed absolute drop versus results/baseline.json.
+tolerance:
+  answer_correctness: 0.02
+  faithfulness: 0.02
+  retrieval.recall_at_k: 0.02
+  citations.citation_coverage: 0.02
+
+metrics:
+  - answer_correctness
+  - faithfulness
+  - retrieval.recall_at_k

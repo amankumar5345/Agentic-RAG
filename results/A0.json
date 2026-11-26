@@ -1,0 +1,515 @@
+{
+  "schema_version": "1.0",
+  "arm": "A0",
+  "arm_kind": "mock",
+  "split": "test",
+  "timestamp": "2026-11-26T17:42:03.826543+00:00",
+  "git_commit": "6162e79e1bf08ddd5131bedfac111bcc8b4f66d2",
+  "config_hash": "2222eccff432c18a8d7737985d4ba016c5ae72cccda72c7e703f2553d416f9d7",
+  "config": {
+    "arm": "A0",
+    "split": "test",
+    "generator_model": "openai/gpt-oss-120b",
+    "judge_model": "groq/qwen/qwen3.8-27b",
+    "top_k": 7,
+    "temperature": 0.0,
+    "seed": 42,
+    "limit": 5,
+    "mock": true,
+    "data_dir": "C:\\Users\\stark\\OneDrive\\Desktop\\New Project\\Agentic-RAG\\bench\\data",
+    "corpus_path": "C:\\Users\\stark\\OneDrive\\Desktop\\New Project\\Agentic-RAG\\our_database\\all_contents.txt",
+    "prices_path": "C:\\Users\\stark\\OneDrive\\Desktop\\New Project\\Agentic-RAG\\configs\\prices.yaml",
+    "judge_prompt_path": "C:\\Users\\stark\\OneDrive\\Desktop\\New Project\\Agentic-RAG\\configs\\judge_prompt.md",
+    "arms_config_path": "C:\\Users\\stark\\OneDrive\\Desktop\\New Project\\Agentic-RAG\\configs\\arms.yaml",
+    "chunk_size": 1000,
+    "chunk_overlap": 150,
+    "embedding_model": "bge-m3:latest",
+    "judge_prompt_sha256": "b2d207446d74d67c93f0999f3e3f8e78ca1fec95fd67c318a8e37e0030ba7870",
+    "prices_sha256": "5640749f16a98fedfa8b8aa4b7668c505458d66dcdb7c3bca06eb41845bc0142",
+    "arms_config_sha256": "37d78ab444ae8f8867b701820ff2c508f58eb9bc3d0274c39de17a8ff33593e6"
+  },
+  "models": {
+    "generator": "openai/gpt-oss-120b",
+    "judge": "groq/qwen/qwen3.8-27b"
+  },
+  "seed": 42,
+  "mock": true,
+  "dataset_hash": "9727c4eca1338bafbace8677a836e9a8f034200e6acd2fa39615d46bac8eb6f3",
+  "aggregates": {
+    "n_cases": 5,
+    "n_answerable": 5,
+    "n_unanswerable": 0,
+    "retrieval": {
+      "k": 7,
+      "recall_at_k": 1.0,
+      "recall_at_k_ci95": [
+        1.0,
+        1.0
+      ],
+      "hit_at_k": 1.0,
+      "mrr": 1.0
+    },
+    "answer_correctness": 1.0,
+    "answer_correctness_ci95": [
+      0.5655085052479191,
+      1.0
+    ],
+    "faithfulness": 1.0,
+    "faithfulness_ci95": [
+      1.0,
+      1.0
+    ],
+    "abstention": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "n_unanswerable": 0,
+      "n_predicted_abstention": 0
+    },
+    "latency_s": {
+      "p50": 0.004719399963505566,
+      "p95": 0.005155100021511316,
+      "mean": 0.004715319990646094,
+      "n": 5
+    },
+    "cost_usd": {
+      "total": 0.0,
+      "per_correct_answer": 0.0,
+      "tracked": true
+    },
+    "tokens": {
+      "prompt": 3052,
+      "completion": 95
+    }
+  },
+  "cases": [
+    {
+      "id": "qa-0268b4d852",
+      "type": "qa",
+      "subtype": "single_hop",
+      "split": "test",
+      "input": "What value of N provides the optimum balance between the gain in diffraction efficiency and the losses introduced by fabrication errors?",
+      "output": "It turned out that the optimum balance between these two effects is given with N = 8.",
+      "retrieved": [
+        {
+          "id": "gold-0",
+          "text": "Another  limitation is  introduced by the  alignment and positioning errors of  the  machine.  The generation  of  a  N-level  stair step  profile requires ld(N) process steps (ld  denotes the  dual  logarithm). Theoretically the quality  of the DOEs increases with increasing N. Practically the  gain  in  diffraction efficiency  is  overcompensated by the  losses introduced by the  errors mentioned  above.  It  turned out  that the optimum balance between  these  two effects is  given with  N = 8.  A  detailed analysis of  the  various fabrication errors is  given  in  [3].\n\n## 5.  Results",
+          "doc": "1-s2.0-S0169433296004205-main.pdf",
+          "section": "4.  Limitations",
+          "char_start": 234329,
+          "char_end": 234925,
+          "score": 0.0
+        }
+      ],
+      "citations": [
+        {
+          "doc": "1-s2.0-S0169433296004205-main.pdf",
+          "section": "4.  Limitations",
+          "char_start": 234329,
+          "char_end": 234925
+        }
+      ],
+      "retrieval_calls": 1,
+      "gold_sources": [
+        {
+          "doc": "1-s2.0-S0169433296004205-main.pdf",
+          "section": "4.  Limitations",
+          "char_start": 234329,
+          "char_end": 234925,
+          "text_hash": "1dab330cb1c262123e539c2c054e9b2290cbc670a87bfab6767db96215725f93"
+        }
+      ],
+      "retrieval": {
+        "recall_at_k": 1.0,
+        "hit_at_k": 1.0,
+        "mrr": 1.0,
+        "k": 7,
+        "n_gold": 1
+      },
+      "correctness": {
+        "correct": true,
+        "reason": "mock"
+      },
+      "faithfulness": {
+        "score": 1.0,
+        "claims": [
+          "Mock claim one.",
+          "Mock claim two."
+        ],
+        "supported": [
+          true,
+          true
+        ]
+      },
+      "judge_responses": [
+        "{\"correct\": true, \"reason\": \"mock\"}",
+        "{\"claims\": [\"Mock claim one.\", \"Mock claim two.\"]}",
+        "{\"supported\": true, \"reason\": \"mock\"}",
+        "{\"supported\": true, \"reason\": \"mock\"}"
+      ],
+      "latencies": {
+        "retrieval_s": 0.0,
+        "generation_s": 0.0,
+        "total_s": 0.005241200036834925,
+        "judge_s": 0.005241200036834925
+      },
+      "tokens": {
+        "prompt": 484,
+        "completion": 19
+      },
+      "cost_usd": 0.0,
+      "mock": true
+    },
+    {
+      "id": "qa-035e23e890",
+      "type": "qa",
+      "subtype": "single_hop",
+      "split": "test",
+      "input": "Which specific metal deposition techniques are mentioned for covering selected regions of a structure surface with conductive or magnetic materials?",
+      "output": "metal deposition techniques such as sputtering, [32 -41] e-beam evaporation, [42 -48] spray coating, [49] and physical vapor deposition. [50 -52]",
+      "retrieved": [
+        {
+          "id": "gold-0",
+          "text": "## 2.1.1. Deposition of Metal Layers\n\nMetal layers deposition involves covering selected regions of the structure surface with layers of conductive/magnetic materials by means of metal deposition techniques such as sputtering, [32 -41] e-beam evaporation, [42 -48] spray coating, [49] and physical vapor deposition. [50 -52] The fabrication of a sacrificial structure to be removed after the deposition process is often required to deposit the material only on the desired surface (i.e., head of a microrobot). [32]\n\n<!-- image -->\n\nwww.advancedsciencenews.com www.advintellsyst.com\n\n<!-- image -->",
+          "doc": "Advanced Intelligent Systems - 2021 - Bernardeschi - A Review on Active 3D Microstructures via Direct Laser Lithography.pdf",
+          "section": "2.1.1. Deposition of Metal Layers",
+          "char_start": 661661,
+          "char_end": 662259,
+          "score": 0.0
+        }
+      ],
+      "citations": [
+        {
+          "doc": "Advanced Intelligent Systems - 2021 - Bernardeschi - A Review on Active 3D Microstructures via Direct Laser Lithography.pdf",
+          "section": "2.1.1. Deposition of Metal Layers",
+          "char_start": 661661,
+          "char_end": 662259
+        }
+      ],
+      "retrieval_calls": 1,
+      "gold_sources": [
+        {
+          "doc": "Advanced Intelligent Systems - 2021 - Bernardeschi - A Review on Active 3D Microstructures via Direct Laser Lithography.pdf",
+          "section": "2.1.1. Deposition of Metal Layers",
+          "char_start": 661661,
+          "char_end": 662259,
+          "text_hash": "3a51ddc5aebaefb738262870da657bbf2fa37a6f2ac393e931914177d0df93f5"
+        }
+      ],
+      "retrieval": {
+        "recall_at_k": 1.0,
+        "hit_at_k": 1.0,
+        "mrr": 1.0,
+        "k": 7,
+        "n_gold": 1
+      },
+      "correctness": {
+        "correct": true,
+        "reason": "mock"
+      },
+      "faithfulness": {
+        "score": 1.0,
+        "claims": [
+          "Mock claim one.",
+          "Mock claim two."
+        ],
+        "supported": [
+          true,
+          true
+        ]
+      },
+      "judge_responses": [
+        "{\"correct\": true, \"reason\": \"mock\"}",
+        "{\"claims\": [\"Mock claim one.\", \"Mock claim two.\"]}",
+        "{\"supported\": true, \"reason\": \"mock\"}",
+        "{\"supported\": true, \"reason\": \"mock\"}"
+      ],
+      "latencies": {
+        "retrieval_s": 0.0,
+        "generation_s": 0.0,
+        "total_s": 0.004098700010217726,
+        "judge_s": 0.004098700010217726
+      },
+      "tokens": {
+        "prompt": 487,
+        "completion": 19
+      },
+      "cost_usd": 0.0,
+      "mock": true
+    },
+    {
+      "id": "qa-05a8d08951",
+      "type": "qa",
+      "subtype": "multi_hop",
+      "split": "test",
+      "input": "According to the McLeod group's 2009 work, what specific optical mode was utilized in the 2PII scheme to reduce the lateral extent of single voxels, and how does this relate to the fabrication method shown in Figure 15(a) of the nanomaterials study, which depicts a microstructure created by a specific beam configuration?",
+      "output": "The McLeod group utilized a donut mode to reduce the lateral extent of single voxels in their 2PII scheme, while Figure 15(a) in the nanomaterials study shows a microstructure fabricated by triple-beam LIL.",
+      "retrieved": [
+        {
+          "id": "gold-0",
+          "text": "## McLeod group 2009\n\nIn the second early publication [25], the McLeod group introduced the 2PII scheme (see Sect. 5.3) utilizing a photoinhibitor for spatial confinement. A donut mode (see Fig. 4ad) was used to reduce the lateral extent of single voxels\n\n<!-- image -->\n\n38",
+          "doc": "Laser   Photonics Reviews - 2012 - Fischer - Three\u2010dimensional optical laser lithography beyond the diffraction limit.pdf",
+          "section": "McLeod group 2009",
+          "char_start": 1439853,
+          "char_end": 1440127,
+          "score": 0.0
+        },
+        {
+          "id": "gold-1",
+          "text": "Figure 15. ( a ) SEM image of the microstructure fabricated by triple-beam LIL; ( b ) close-up i the structured surface; ( c ) SEM image of Vickers   indentation with the applied load of 200 Figure 15. ( a ) SEM image of the microstructure fabricated by triple-beam LIL; ( b ) close-up image of the structured surface; ( c ) SEM image of Vickers' indentation with the applied load of 200 g for 10 s; ( d ) SEM image of the original material with Vickers' indentation. ( e ) Schematic of the lubrication model reducing friction by the formation of dimples. Reproduced with permission/adapted from [130].\n\n<!-- image -->",
+          "doc": "nanomaterials-13-01818 (1).pdf",
+          "section": "For some items, prolonged friction can cause wear and even scrap. The topics of fric3.5.2. Friction Reduction, and Hardness Enhancement",
+          "char_start": 2228407,
+          "char_end": 2229025,
+          "score": 0.0
+        }
+      ],
+      "citations": [
+        {
+          "doc": "Laser   Photonics Reviews - 2012 - Fischer - Three\u2010dimensional optical laser lithography beyond the diffraction limit.pdf",
+          "section": "McLeod group 2009",
+          "char_start": 1439853,
+          "char_end": 1440127
+        },
+        {
+          "doc": "nanomaterials-13-01818 (1).pdf",
+          "section": "For some items, prolonged friction can cause wear and even scrap. The topics of fric3.5.2. Friction Reduction, and Hardness Enhancement",
+          "char_start": 2228407,
+          "char_end": 2229025
+        }
+      ],
+      "retrieval_calls": 1,
+      "gold_sources": [
+        {
+          "doc": "Laser   Photonics Reviews - 2012 - Fischer - Three\u2010dimensional optical laser lithography beyond the diffraction limit.pdf",
+          "section": "McLeod group 2009",
+          "char_start": 1439853,
+          "char_end": 1440127,
+          "text_hash": "1046dee3e1f840aaee45f1d26cee0ec575820eaaf892f95af98c7a08c06674d6"
+        },
+        {
+          "doc": "nanomaterials-13-01818 (1).pdf",
+          "section": "For some items, prolonged friction can cause wear and even scrap. The topics of fric3.5.2. Friction Reduction, and Hardness Enhancement",
+          "char_start": 2228407,
+          "char_end": 2229025,
+          "text_hash": "928dbead186f7aeb601bcd41a8e2040297d7132cbfb85bdf15b0555512aeda2c"
+        }
+      ],
+      "retrieval": {
+        "recall_at_k": 1.0,
+        "hit_at_k": 1.0,
+        "mrr": 1.0,
+        "k": 7,
+        "n_gold": 2
+      },
+      "correctness": {
+        "correct": true,
+        "reason": "mock"
+      },
+      "faithfulness": {
+        "score": 1.0,
+        "claims": [
+          "Mock claim one.",
+          "Mock claim two."
+        ],
+        "supported": [
+          true,
+          true
+        ]
+      },
+      "judge_responses": [
+        "{\"correct\": true, \"reason\": \"mock\"}",
+        "{\"claims\": [\"Mock claim one.\", \"Mock claim two.\"]}",
+        "{\"supported\": true, \"reason\": \"mock\"}",
+        "{\"supported\": true, \"reason\": \"mock\"}"
+      ],
+      "latencies": {
+        "retrieval_s": 0.0,
+        "generation_s": 0.0,
+        "total_s": 0.00481069996021688,
+        "judge_s": 0.00481069996021688
+      },
+      "tokens": {
+        "prompt": 701,
+        "completion": 19
+      },
+      "cost_usd": 0.0,
+      "mock": true
+    },
+    {
+      "id": "qa-070b35d00a",
+      "type": "qa",
+      "subtype": "single_hop",
+      "split": "test",
+      "input": "For which laser classes are written standard operating procedures (SOPs) outlining alignment methods required to be approved?",
+      "output": "Written standard operating procedures (SOPs) outlining alignment methods should be approved for Class 3B and shall be approved for Class 4 lasers or laser systems.",
+      "retrieved": [
+        {
+          "id": "gold-0",
+          "text": "- \uf0a7 Authorized Personnel (Class 3B or 4 or Embedded Class 3B or 4) - Class 3B or Class 4 lasers or laser systems shall be operated, maintained, or serviced only by authorized personnel. Lasers or laser systems with enclosed Class 3B or Class 4 lasers shall be maintained or serviced only by authorized personnel if such procedures would permit access to levels which exceed 3R AEL. Alignment Procedures (All except Class 1) - Alignment of Class 2, 3R, 3B, or Class 4 laser optical systems (mirrors, lenses, beam deflectors, etc.) shall be performed in such a manner that the primary beam, or a specular or diffuse reflection of a beam, does not expose the eye to a level above the applicable MPE. Written standard operating procedures (SOPs) outlining alignment methods should be approved for Class 3B and shall be approved for Class 4 lasers or laser systems. SOPs shall also be applicable for all classes of lasers or laser systems which contain embedded Class 3B or Class 4 lasers under",
+          "doc": "laser-safety-manual (1).pdf",
+          "section": "10.4   Administrative and Procedural Controls (Class 3B and Class 4 Lasers)",
+          "char_start": 1675740,
+          "char_end": 1676729,
+          "score": 0.0
+        }
+      ],
+      "citations": [
+        {
+          "doc": "laser-safety-manual (1).pdf",
+          "section": "10.4   Administrative and Procedural Controls (Class 3B and Class 4 Lasers)",
+          "char_start": 1675740,
+          "char_end": 1676729
+        }
+      ],
+      "retrieval_calls": 1,
+      "gold_sources": [
+        {
+          "doc": "laser-safety-manual (1).pdf",
+          "section": "10.4   Administrative and Procedural Controls (Class 3B and Class 4 Lasers)",
+          "char_start": 1675740,
+          "char_end": 1676729,
+          "text_hash": "c3ee961c6b0a8e90d1425394b7519b54307ed0f496b725c5df6023402593234d"
+        }
+      ],
+      "retrieval": {
+        "recall_at_k": 1.0,
+        "hit_at_k": 1.0,
+        "mrr": 1.0,
+        "k": 7,
+        "n_gold": 1
+      },
+      "correctness": {
+        "correct": true,
+        "reason": "mock"
+      },
+      "faithfulness": {
+        "score": 1.0,
+        "claims": [
+          "Mock claim one.",
+          "Mock claim two."
+        ],
+        "supported": [
+          true,
+          true
+        ]
+      },
+      "judge_responses": [
+        "{\"correct\": true, \"reason\": \"mock\"}",
+        "{\"claims\": [\"Mock claim one.\", \"Mock claim two.\"]}",
+        "{\"supported\": true, \"reason\": \"mock\"}",
+        "{\"supported\": true, \"reason\": \"mock\"}"
+      ],
+      "latencies": {
+        "retrieval_s": 0.0,
+        "generation_s": 0.0,
+        "total_s": 0.004706599982455373,
+        "judge_s": 0.004706599982455373
+      },
+      "tokens": {
+        "prompt": 668,
+        "completion": 19
+      },
+      "cost_usd": 0.0,
+      "mock": true
+    },
+    {
+      "id": "qa-0abf48ed47",
+      "type": "qa",
+      "subtype": "multi_hop",
+      "split": "test",
+      "input": "According to the laser safety manual, what is the title of the checklist found in Appendix K, and how does the technology described in the Tian 2023 paper regarding laser direct write lithography utilize a laser beam to form patterns on a substrate?",
+      "output": "The checklist in Appendix K is titled 'Laboratory Laser Safety Inspection Checklist'. The technology described in the Tian 2023 paper utilizes a computer-controlled scanning of a high-precision laser beam to expose the resist material on the surface of the substrate in variable doses, forming the required pattern after development.",
+      "retrieved": [
+        {
+          "id": "gold-0",
+          "text": "| 17.0                                                                                                                                                                                                                                                              | Appendix K: Laboratory Laser Safety Inspection Checklist .....................................73                                                                                                                                                                                                                                                               |",
+          "doc": "laser-safety-manual (1).pdf",
+          "section": "Table of Contents",
+          "char_start": 1558130,
+          "char_end": 1558744,
+          "score": 0.0
+        },
+        {
+          "id": "gold-1",
+          "text": "Laser direct write lithography (LDWL) is a new technology for the production of diffractive optical components[8].  The  basic  principle  of  its  operation  is  the  computer-controlled  scanning  of  a high-precision  laser  beam,  which  is  then  used  to  expose  the  resist  material  on  the  surface  of  the substrate  in  variable  doses  and  to  form  the  required  pattern  on  the  surface  of  the  resist  layer  after development.  As  the  low  speed  of  two-photon  laser  direct  writing  constrains  its  development  to industry,  Wang  Hongqing  et  al.  integrated  independent  multi-beam  parallel  writing  and  high-speed scanning devices[9]. For independent multi-beam parallel writing, SLM was used to generate multiple beams,  and  then  each  beam  of  the  multi-beam  was  modulated  independently  by  a  multi-channel acousto-optical modulator (AOMC). For high speed scanning devices, polyhedral rotating mirrors are used instead  of  conventional",
+          "doc": "Tian_2023_J._Phys.__Conf._Ser._2608_012016 (2).pdf",
+          "section": "2.2. Laser maskless lithography",
+          "char_start": 3351284,
+          "char_end": 3352271,
+          "score": 0.0
+        }
+      ],
+      "citations": [
+        {
+          "doc": "laser-safety-manual (1).pdf",
+          "section": "Table of Contents",
+          "char_start": 1558130,
+          "char_end": 1558744
+        },
+        {
+          "doc": "Tian_2023_J._Phys.__Conf._Ser._2608_012016 (2).pdf",
+          "section": "2.2. Laser maskless lithography",
+          "char_start": 3351284,
+          "char_end": 3352271
+        }
+      ],
+      "retrieval_calls": 1,
+      "gold_sources": [
+        {
+          "doc": "laser-safety-manual (1).pdf",
+          "section": "Table of Contents",
+          "char_start": 1558130,
+          "char_end": 1558744,
+          "text_hash": "8fdd8635f4326a0f4d3d0b62b3e488435f38448fcdca9a9f031f7b2541aee1b1"
+        },
+        {
+          "doc": "Tian_2023_J._Phys.__Conf._Ser._2608_012016 (2).pdf",
+          "section": "2.2. Laser maskless lithography",
+          "char_start": 3351284,
+          "char_end": 3352271,
+          "text_hash": "08b6abba883c8a040904db1e186ab45cf030b7b8c65cbac864e1ae83163f3f39"
+        }
+      ],
+      "retrieval": {
+        "recall_at_k": 1.0,
+        "hit_at_k": 1.0,
+        "mrr": 1.0,
+        "k": 7,
+        "n_gold": 2
+      },
+      "correctness": {
+        "correct": true,
+        "reason": "mock"
+      },
+      "faithfulness": {
+        "score": 1.0,
+        "claims": [
+          "Mock claim one.",
+          "Mock claim two."
+        ],
+        "supported": [
+          true,
+          true
+        ]
+      },
+      "judge_responses": [
+        "{\"correct\": true, \"reason\": \"mock\"}",
+        "{\"claims\": [\"Mock claim one.\", \"Mock claim two.\"]}",
+        "{\"supported\": true, \"reason\": \"mock\"}",
+        "{\"supported\": true, \"reason\": \"mock\"}"
+      ],
+      "latencies": {
+        "retrieval_s": 0.0,
+        "generation_s": 0.0,
+        "total_s": 0.004719399963505566,
+        "judge_s": 0.004719399963505566
+      },
+      "tokens": {
+        "prompt": 712,
+        "completion": 19
+      },
+      "cost_usd": 0.0,
+      "mock": true
+    }
+  ]
+}

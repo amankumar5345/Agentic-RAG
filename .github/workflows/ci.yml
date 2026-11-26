@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GROQ_API_KEY: test-groq-key
+      DEEPSEEK_API_KEY: test-deepseek-key
+      LANGCHAIN_TRACING_V2: "false"
+      LITELLM_LOCAL_MODEL_COST_MAP: "true"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install "pytest>=8" "ruff>=0.17.0"
+
+      - name: Lint
+        run: python -m ruff check .
+
+      - name: Mock arms
+        run: bash scripts/run_all_arms.sh --mock --limit 5
+
+      - name: Test
+        run: python -m pytest
+
+      - name: README results check
+        run: python scripts/build_readme.py --check
+
+      - name: Claim check
+        run: python scripts/claim_check.py

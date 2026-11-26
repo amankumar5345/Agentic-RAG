@@ -1,0 +1,24 @@
+# USD per 1,000,000 tokens. Fill these in before a real (non---mock) run.
+# litho_eval.client.estimate_cost() raises MissingPriceError when a model
+# is absent or either value is null. Do not guess prices into this file.
+
+# Groq list prices checked 2026-11-26; verify against console.groq.com before
+# publishing any cost number derived from them.
+models:
+  openai/gpt-oss-120b:
+    input_per_million: 0.15
+    output_per_million: 0.60
+  openai/gpt-oss-20b:
+    input_per_million: 0.075
+    output_per_million: 0.30
+  groq/qwen/qwen3.8-27b:
+    input_per_million: 0.80
+    output_per_million: 4.00
+
+  # DeepSeek prices are time-of-day dependent (peak vs off-peak), so they are
+  # intentionally left for you. deepseek-chat is the project's judge default;
+  # fill both fields from https://api-docs.deepseek.com/quick_start/pricing
+  # before selecting --judge-model deepseek/deepseek-chat.
+  deepseek/deepseek-chat:
+    input_per_million:
+    output_per_million:

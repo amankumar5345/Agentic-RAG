@@ -1,17 +1,31 @@
 import os
-import streamlit as st
-import speech_recognition as sr
+from pathlib import Path
 
-UNREAL_AUDIO_PATH = r"G:\litho\Saved\UserAudioInput.wav.wav"
-PROCESSING_AUDIO_PATH = r"G:\litho\Saved\processing_recording.wav"
+import speech_recognition as sr
+import streamlit as st
+
+
+def _unreal_audio_path() -> Path:
+    """WAV file written by the Unreal mic manager."""
+    return Path(
+        os.environ.get("LITHO_AUDIO_PATH", "./runtime/UserAudioInput.wav")
+    ).expanduser()
+
+
+def _processing_audio_path() -> Path:
+    """Local copy used while transcribing; kept beside the Unreal input."""
+    return _unreal_audio_path().with_name("processing_recording.wav")
+
 
 def external_unreal_audio_exists() -> bool:
-    return os.path.exists(UNREAL_AUDIO_PATH)
+    return _unreal_audio_path().exists()
 
-def transcribe_local_wav_file(audio_path: str = PROCESSING_AUDIO_PATH) -> str | None:
+
+def transcribe_local_wav_file(audio_path: str | os.PathLike | None = None) -> str | None:
+    path = Path(audio_path) if audio_path is not None else _processing_audio_path()
     r = sr.Recognizer()
     try:
-        with sr.AudioFile(audio_path) as source:
+        with sr.AudioFile(str(path)) as source:
             audio_data = r.record(source)
             transcription = r.recognize_google(audio_data)
             return transcription
@@ -43,8 +57,9 @@ def transcribe_audio_stream(audio_stream) -> str | None:
 
 def clear_or_delete_processed_wav():
     try:
-        if os.path.exists(PROCESSING_AUDIO_PATH):
-            os.remove(PROCESSING_AUDIO_PATH) 
+        path = _processing_audio_path()
+        if path.exists():
+            path.unlink()
     except Exception as e:
         st.error(f"Failed to move/delete the audio file: {e}")
 
@@ -53,9 +68,11 @@ def watch_for_unreal_audio():
     if external_unreal_audio_exists():
         st.markdown('***🎙️ Processing Unreal Input...***')
         try:
-            if os.path.exists(PROCESSING_AUDIO_PATH):
-                os.remove(PROCESSING_AUDIO_PATH)
-            os.rename(UNREAL_AUDIO_PATH, PROCESSING_AUDIO_PATH)
+            unreal_path = _unreal_audio_path()
+            processing_path = _processing_audio_path()
+            if processing_path.exists():
+                processing_path.unlink()
+            unreal_path.replace(processing_path)
         except Exception as e:
             st.write(f"Waiting for file lock to clear... ({e})")
             return
