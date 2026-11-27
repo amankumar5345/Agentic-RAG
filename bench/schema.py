@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import random
 from collections import defaultdict
 from datetime import datetime
@@ -14,6 +15,7 @@ from pydantic import BaseModel, Field, TypeAdapter, model_validator
 DATA_DIR = Path(__file__).resolve().parent / "data"
 
 ROLE_NAMES = ("Safety Agent", "Maintainance Agent", "Draw Agent", "Chatbot")
+Difficulty = Literal["easy", "medium", "hard"]
 
 QA_TARGETS = {
     "single_hop": 60,
@@ -72,6 +74,7 @@ class CaseBase(BaseModel):
     status: Literal["draft", "verified"]
     reviewer: Optional[str] = None
     reviewed_at: Optional[datetime] = None
+    difficulty: Optional[Difficulty] = None
 
     @model_validator(mode="after")
     def _verified_needs_review(self) -> "CaseBase":
@@ -139,6 +142,18 @@ Case = Annotated[
 CASE_ADAPTER = TypeAdapter(Case)
 
 
+def case_json(case: Case) -> str:
+    """Canonical JSON for a case, omitting an unset difficulty field.
+
+    Omitting ``difficulty`` when it is ``None`` keeps the serialized form (and
+    therefore ``dataset_hash``) byte-identical for the existing cases.
+    """
+    payload = json.loads(case.model_dump_json())
+    if payload.get("difficulty") is None:
+        payload.pop("difficulty", None)
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+
+
 def source_key(source: GoldSource) -> tuple[str, int, int]:
     return (source.doc, source.char_start, source.char_end)
 
@@ -185,7 +200,7 @@ def write_cases(cases: list[Case], data_dir: Path = DATA_DIR) -> None:
     for case_type, filename in CASE_FILES.items():
         path = data_dir / filename
         rows = sorted(by_type.get(case_type, []), key=lambda case: case.id)
-        payload = "".join(case.model_dump_json() + "\n" for case in rows)
+        payload = "".join(case_json(case) + "\n" for case in rows)
         temp = path.with_name(f".{filename}.tmp")
         temp.write_text(payload, encoding="utf-8")
         temp.replace(path)

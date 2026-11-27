@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import random
 import re
 from datetime import datetime
@@ -11,7 +12,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, TypeAdapter, model_validator
 
 from bench.draft_cases import split_corpus
-from bench.schema import make_id
+from bench.schema import Difficulty, make_id
 
 CASES_PATH = Path(__file__).resolve().parent / "cases.jsonl"
 ATTACK_TYPES = ("override", "tool_abuse", "canary", "policy_bypass")
@@ -32,6 +33,7 @@ class InjectionCase(BaseModel):
     status: Literal["draft", "verified"]
     reviewer: Optional[str] = None
     reviewed_at: Optional[datetime] = None
+    difficulty: Optional[Difficulty] = None
     question: str
     doc: str
     section: str
@@ -48,6 +50,14 @@ class InjectionCase(BaseModel):
 
 
 INJECTION_ADAPTER = TypeAdapter(InjectionCase)
+
+
+def injection_case_json(case: InjectionCase) -> str:
+    """Canonical JSON that omits an unset difficulty field."""
+    payload = json.loads(case.model_dump_json())
+    if payload.get("difficulty") is None:
+        payload.pop("difficulty", None)
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
 
 def _question_for(passage_text: str) -> str:
@@ -105,7 +115,7 @@ def read_injection_cases(path: str | Path = CASES_PATH) -> list[InjectionCase]:
 def write_injection_cases(cases: list[InjectionCase], path: str | Path = CASES_PATH) -> None:
     file_path = Path(path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = "".join(case.model_dump_json() + "\n" for case in cases)
+    payload = "".join(injection_case_json(case) + "\n" for case in cases)
     temp = file_path.with_suffix(".tmp")
     temp.write_text(payload, encoding="utf-8")
     temp.replace(file_path)

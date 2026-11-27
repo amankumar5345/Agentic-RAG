@@ -13,6 +13,7 @@ __pycache__/
 .streamlit/secrets.toml
 .ipynb_checkpoints/
 results/**/cache/
+results_ci/
 
 # Legacy Files & Notebooks
 backend.py

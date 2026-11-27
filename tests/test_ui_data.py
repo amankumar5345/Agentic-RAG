@@ -11,8 +11,10 @@ from src.ui.components.charts import (
     latency_timeline,
     scatter_cost_latency,
 )
+from src.ui.components.mock import data_status, with_status
 from src.ui.data import (
     derived_difficulty,
+    difficulty_view,
     is_mock,
     load_result,
     results_manifest,
@@ -58,11 +60,29 @@ def test_missing_result_is_not_run():
 
 def test_mock_result_is_flagged():
     assert is_mock({"mock": True})
+    assert data_status({"mock": True}) == "MOCK"
+    assert data_status({"status": "blocked"}) == "NOT YET RUN"
+    assert data_status({"mock": False}) == "MEASURED"
+
+
+def test_with_status_adds_a_visible_data_column():
+    labelled = with_status(pd.DataFrame([{"arm": "A1"}]), {"mock": True})
+
+    assert list(labelled["data"]) == ["MOCK"]
 
 
 def test_derived_difficulty():
     assert derived_difficulty({"type": "qa", "subtype": "multi_hop"}) == "hard"
-    assert derived_difficulty({"type": "qa", "subtype": "single_hop"}) == "easy"
+    assert derived_difficulty({"type": "qa", "subtype": "single_hop"}) == "medium"
+    assert difficulty_view({"type": "qa", "subtype": "multi_hop"})[1] == "derived (heuristic)"
+    assert difficulty_view({"type": "qa", "subtype": "hazard"}) == ("not set", "not set")
+
+
+def test_stored_difficulty_wins_over_heuristic():
+    assert difficulty_view({"difficulty": "easy", "subtype": "multi_hop"}) == (
+        "easy",
+        "stored",
+    )
 
 
 def test_manifest_lists_results():

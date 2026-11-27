@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import streamlit as st
 
-from src.core.trace import demo_trace
+from src.core.trace import arm_trace, load_traces, trace_for_question, trace_result
 from src.ui.components.chat import render_chat
-from src.ui.data import NOT_RUN, load_arm
+from src.ui.components.mock import MOCK_BANNER
+from src.ui.data import NOT_RUN
 from src.ui.state import setup_page
 
 
@@ -15,32 +16,34 @@ def render() -> None:
     st.title("Assistant")
 
     mode = st.session_state.get("mode", "demo")
-    payload = load_arm("A5")
-    cases = [case for case in (payload or {}).get("cases", []) if case.get("type") == "qa"]
-    by_question = {case.get("input"): case for case in cases}
 
     if mode == "demo":
-        if not cases:
-            st.warning(f"{NOT_RUN}: no recorded A5 answers.")
+        traces = load_traces()
+        if not traces:
+            st.warning(f"{NOT_RUN}: no recorded traces in results/traces/.")
             return
-        st.caption("Demo mode replays recorded A5 answers. Pick one, then ask it in the chat box.")
-        options = [case.get("input") for case in cases]
-        selected = st.selectbox("Recorded question", options)
+        if any(trace.get("mock") for trace in traces):
+            st.warning(f"**{MOCK_BANNER}.** Demo replays recorded traces only.")
+        questions = []
+        for trace in traces:
+            question = trace.get("question")
+            if question and question not in questions:
+                questions.append(question)
+        if not questions:
+            st.warning(f"{NOT_RUN}: recorded traces have no question field.")
+            return
+        st.caption(
+            "Demo mode replays committed traces. Missing fields are shown as "
+            "'not recorded'; nothing is synthesized."
+        )
+        selected = st.selectbox("Recorded question", questions)
         if st.button("Use this recorded question"):
             st.session_state["pending_question"] = selected
 
         def trace_fn(question: str) -> dict:
-            case = by_question.get(question)
-            if case is None:
-                return {
-                    "answer": "No recorded trace for this question in demo mode.",
-                    "trace": None,
-                    "geometry": None,
-                }
-            return demo_trace(case)
+            return trace_result(trace_for_question(question, traces))
 
     else:
-        from src.core.trace import arm_trace
         from src.ui.data import get_live_arm
 
         def trace_fn(question: str) -> dict:

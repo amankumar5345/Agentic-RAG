@@ -31,7 +31,7 @@ jobs:
         run: python -m ruff check .
 
       - name: Mock arms
-        run: bash scripts/run_all_arms.sh --mock --limit 5
+        run: LITHO_RESULTS_DIR=results_ci bash scripts/run_all_arms.sh --mock --limit 5
 
       - name: Test
         run: python -m pytest

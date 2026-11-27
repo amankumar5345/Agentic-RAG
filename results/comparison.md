@@ -3,7 +3,7 @@
 - Baseline: `A1`
 - Split: `test`
 - Dataset: `9727c4eca1338bafbace8677a836e9a8f034200e6acd2fa39615d46bac8eb6f3`
-- Generated: 2026-11-26T17:42:26.122431+00:00
+- Generated: 2026-11-27T10:11:40.801075+00:00
 
 _Retrieval metrics are meaningful for A1-A4; A0 and agent arms report n/a._
 
@@ -80,17 +80,6 @@ _Mock run; not a benchmark result._
 | answer_correctness | 1.0000 | 1.0000 | 0.0000 | [0.0000, 0.0000] | 5 |
 | faithfulness | 1.0000 | 1.0000 | 0.0000 | [0.0000, 0.0000] | 5 |
 | latency_s | 0.0023 | 0.0018 | -0.0005 | [-0.0009, -0.0002] | 5 |
-| cost_usd | 0.0000 | 0.0000 | 0.0000 | [0.0000, 0.0000] | 5 |
-
-_Mock run; not a benchmark result._
-
-## A8
-
-| Metric | Baseline | Arm | Delta | 95% CI | n |
-| :--- | ---: | ---: | ---: | :--- | ---: |
-| answer_correctness | 1.0000 | 1.0000 | 0.0000 | [0.0000, 0.0000] | 5 |
-| faithfulness | 1.0000 | 1.0000 | 0.0000 | [0.0000, 0.0000] | 5 |
-| latency_s | 0.0023 | 0.0019 | -0.0004 | [-0.0006, -0.0002] | 5 |
 | cost_usd | 0.0000 | 0.0000 | 0.0000 | [0.0000, 0.0000] | 5 |
 
 _Mock run; not a benchmark result._

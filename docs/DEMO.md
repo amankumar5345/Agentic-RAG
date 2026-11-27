@@ -6,29 +6,36 @@
    ```
    The DEMO banner appears; no keys, Ollama or Unreal needed.
 
-2. **Benchmark** — show the arm table with CIs, the correctness/recall bars,
-   the cost-vs-p95 scatter, then open one guardrail confusion matrix. Point out
-   every block is labelled **MOCK** or **NOT YET RUN** until a real run exists.
+2. **Benchmark** — show the page-level **Contains mock results, not measured**
+   banner, the mock replay table, and one mock correctness bar. Point out that
+   mock values are separated from measured values and never feed the headline
+   takeaways or the README. A8 shows **NOT YET RUN** until a real run exists.
 
 3. **Dataset Explorer** — filter to `qa / test / draft`, open one multi-hop
-   case and show the gold source passage. Mention the dataset card at the
-   bottom.
+   case and show the gold source passage. Point out the **difficulty** column:
+   stored values are shown as stored; unset single-hop cases show
+   **derived (heuristic) medium**, multi-hop/numeric **hard**. Mention the
+   dataset card at the bottom.
 
 4. **Geometry Lab** — pick a case, show the JSON, validation result and 2D
    preview against the dashed gold outline. Press **Send to Unreal**; it writes
-   the mailbox packet and shows a **SIMULATED** ack.
+   the mailbox packet and shows a **SIMULATED** ack. The page banner marks the
+   result as mock or simulated.
 
-5. **Safety Lab** — pick a `jailbreak` sample, switch G0 → G3 and D0 → D3,
-   and show the rule-based decision trace. Scroll to the poisoned-document
-   pair to show the injection text and the sanitised context.
+5. **Safety Lab** — pick a `jailbreak` sample, switch G0 → G3 and D0 → D3, and
+   show the rule-based decision trace. Scroll to the poisoned-document pair to
+   show the injection text and the sanitised context. The result tables carry a
+   **MOCK** data column and the page banner.
 
 6. **Arm Playground** — choose A0, A1, A4; show the three answers side by side,
-   retrieved chunks, latency and gold-source highlights.
+   retrieved chunks, latency and gold-source highlights. A8 is not replayed
+   from mock data.
 
-7. **Assistant** — select a recorded question, click **Use this recorded
-   question**, and open **How this answer was made**: guardrail, router,
-   retrieval calls, chunks, citations, validator status, stage latency and
-   token/cost line. Mention that live mode is the same UI with real calls.
+7. **Assistant** — select a committed recorded question, click **Use this
+   recorded question**, and open **How this answer was made**: schema version,
+   guardrail, router role, rerank candidates, selected chunks, chunk ids,
+   citation check, stage latency and token/cost line. The sample trace is
+   labelled **MOCK** and **sample**; missing fields say **not recorded**.
 
 8. **Methodology** — close on the protocol, limitations and reproduction
    commands.

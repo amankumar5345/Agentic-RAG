@@ -64,7 +64,10 @@ def load_doc(relative: str) -> str:
 
 
 def is_mock(payload: dict | None) -> bool:
-    return bool(payload and payload.get("mock") is True or payload and payload.get("status") in {"mock", "blocked"})
+    return bool(
+        payload
+        and (payload.get("mock") is True or payload.get("status") == "mock")
+    )
 
 
 def status_label(payload: dict | None) -> str:
@@ -102,15 +105,27 @@ def load_injection_cases() -> list[dict]:
     return _injection_cases(path.stat().st_mtime if path.exists() else 0.0)
 
 
+def difficulty_view(case: dict) -> tuple[str, str]:
+    """Return (value, source) for the UI.
+
+    Stored values win. Unset cases may show a heuristic bucket, explicitly
+    tagged as derived; the value is never written back to the dataset and is
+    never used in README, resume numbers or benchmark metrics.
+    """
+    stored = case.get("difficulty")
+    if stored in {"easy", "medium", "hard"}:
+        return stored, "stored"
+    subtype = case.get("subtype") or ""
+    if subtype in {"multi_hop", "numeric"}:
+        return "hard", "derived (heuristic)"
+    if subtype == "single_hop":
+        return "medium", "derived (heuristic)"
+    return "not set", "not set"
+
+
 def derived_difficulty(case: dict) -> str:
-    if case.get("type") == "geometry":
-        return "hard" if case.get("expect_clarification") else "medium"
-    subtype = case.get("subtype") or case.get("category") or ""
-    if subtype in {"multi_hop", "numeric", "hazard", "harmful_procedure", "injection_direct"}:
-        return "hard"
-    if case.get("type") == "adversarial":
-        return "medium"
-    return "easy"
+    """Backward-compatible bucket value; see ``difficulty_view``."""
+    return difficulty_view(case)[0]
 
 
 def gold_text(case: dict) -> str:

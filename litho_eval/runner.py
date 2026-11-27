@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
 
-from bench.schema import QACase, load_cases
+from bench.schema import QACase, case_json, load_cases
 from litho_eval.arms import (
     AgentArm,
     ArmOutput,
@@ -91,7 +91,7 @@ def config_hash(config: RunConfig) -> str:
 
 
 def dataset_hash(cases: Sequence[QACase]) -> str:
-    payload = "\n".join(case.model_dump_json() for case in sorted(cases, key=lambda c: c.id))
+    payload = "\n".join(case_json(case) for case in sorted(cases, key=lambda c: c.id))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -153,6 +153,11 @@ def build_agent_graph(spec, arms_config):
     ).compile()
 
 
+def a8_cache_dir(cache_dir: str | Path) -> Path:
+    """A8 has its own cache namespace so it cannot reuse A0-A7 entries."""
+    return Path(cache_dir) / "A8"
+
+
 def build_citation_arm(config: RunConfig, cache_dir: str):
     from langchain_core.tools import tool
 
@@ -195,14 +200,14 @@ Answer the user's question using only the retrieved context."""
     generator_client = LLMClient(
         config.generator_model,
         prices_path=config.prices_path,
-        cache_dir=cache_dir,
+        cache_dir=str(a8_cache_dir(cache_dir) / "generator"),
         seed=config.seed,
         mock=False,
     )
     judge_client = LLMClient(
         config.judge_model,
         prices_path=config.prices_path,
-        cache_dir=cache_dir,
+        cache_dir=str(a8_cache_dir(cache_dir) / "judge"),
         seed=config.seed,
         mock=False,
     )

@@ -7,6 +7,7 @@ import streamlit as st
 
 from litho_eval.metrics import token_f1
 from src.ui.components.citations import render_citations
+from src.ui.components.mock import banner, data_status
 from src.ui.data import NOT_RUN, load_arm, load_cases
 from src.ui.state import setup_page
 
@@ -16,8 +17,15 @@ def _arm_cases() -> dict[str, dict]:
     for index in range(9):
         arm = f"A{index}"
         payload = load_arm(arm)
-        if payload:
-            cases[arm] = {case["id"]: case for case in payload.get("cases", [])}
+        if not payload:
+            continue
+        if arm == "A8" and (
+            payload.get("mock")
+            or payload.get("status") == "blocked"
+            or not payload.get("cases")
+        ):
+            continue
+        cases[arm] = {case["id"]: case for case in payload.get("cases", [])}
     return cases
 
 
@@ -74,6 +82,9 @@ def render() -> None:
         st.warning(f"{NOT_RUN}: no arm results.")
         return
 
+    banner(*[load_arm(arm) for arm in arms])
+    st.caption("A8 is NOT YET RUN until a real A8 result exists; mock A8 is not replayed.")
+
     available = sorted(arms)
     selected_arms = st.multiselect("Arms (up to three)", available, default=available[:3])
     selected_arms = selected_arms[:3]
@@ -99,7 +110,7 @@ def render() -> None:
                 st.info(NOT_RUN)
                 continue
             if case.get("mock"):
-                st.caption("MOCK recorded output")
+                st.caption(":orange-background[**MOCK**] recorded output; not measured")
             st.markdown(case.get("output", ""))
             retrieved = case.get("retrieved", [])
             if retrieved:
@@ -115,7 +126,13 @@ def render() -> None:
                     )
                 )
             latencies = case.get("latencies", {})
-            st.write({"latency_s": latencies.get("total_s"), "cost_usd": case.get("cost_usd")})
+            st.write(
+                {
+                    "data": "MOCK" if case.get("mock") else data_status({"mock": False}),
+                    "latency_s": latencies.get("total_s"),
+                    "cost_usd": case.get("cost_usd"),
+                }
+            )
             render_citations(case.get("citations"), f"playground-{arm}")
 
 

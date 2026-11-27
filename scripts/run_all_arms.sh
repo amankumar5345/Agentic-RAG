@@ -21,17 +21,22 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-mkdir -p results/dev
+RESULTS_DIR="${LITHO_RESULTS_DIR:-results}"
+mkdir -p "$RESULTS_DIR/dev"
 
 for arm in A0 A1 A2 A3 A4 A5 A6 A7 A8; do
   python -m litho_eval.run \
     --arm "$arm" --split dev \
-    --out "results/dev/${arm}.json" \
+    --out "$RESULTS_DIR/dev/${arm}.json" \
     $MOCK "${LIMIT[@]}"
   python -m litho_eval.run \
     --arm "$arm" --split test \
-    --out "results/${arm}.json" \
+    --out "$RESULTS_DIR/${arm}.json" \
     $MOCK "${LIMIT[@]}"
 done
 
-python -m litho_eval.compare --baseline A1 --results-dir results
+python -m litho_eval.compare \
+  --baseline A1 \
+  --results-dir "$RESULTS_DIR" \
+  --out-json "$RESULTS_DIR/comparison.json" \
+  --out-md "$RESULTS_DIR/comparison.md"

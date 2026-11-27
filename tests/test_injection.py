@@ -1,7 +1,9 @@
 """Tests for indirect injection defences and the separate collection."""
 
+import pytest
+
 from bench.injection.build_collection import build_injected
-from bench.injection.cases import read_injection_cases
+from bench.injection.cases import InjectionCase, read_injection_cases
 from litho_eval.injection import (
     attack_success,
     is_drawing_request,
@@ -50,6 +52,19 @@ def test_mock_asr_arithmetic():
     assert len(outcomes) == 160
     assert summary["D0"]["overall"]["rate"] == 1.0
     assert summary["D3"]["overall"]["rate"] == 0.0
+
+
+def test_injection_difficulty_is_optional():
+    case = read_injection_cases()[0]
+    assert case.difficulty is None
+
+    explicit = InjectionCase.model_validate(
+        {**case.model_dump(), "difficulty": "hard"}
+    )
+    assert explicit.difficulty == "hard"
+
+    with pytest.raises(Exception):
+        InjectionCase.model_validate({**case.model_dump(), "difficulty": "extreme"})
 
 
 def test_injected_collection_leaves_real_collection_untouched(tmp_path):

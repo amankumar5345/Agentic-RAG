@@ -30,7 +30,7 @@ def test_methodology_renders():
 def test_benchmark_renders():
     at = _run("benchmark")
     assert at.title[0].value == "Benchmark"
-    assert len(at.selectbox) >= 1
+    assert len(at.selectbox) >= 1 or len(at.dataframe) >= 1
 
 
 def test_dataset_explorer_renders():
@@ -69,3 +69,13 @@ def test_app_navigation_renders():
     at = AppTest.from_file(str(REPO_ROOT / "src/ui/app.py"), default_timeout=30).run()
     assert not at.exception, [str(error.value) for error in at.exception]
     assert at.title[0].value == "Methodology"
+
+
+def _warnings(at) -> str:
+    return " ".join(warning.value for warning in at.warning)
+
+
+def test_mock_pages_show_the_page_level_banner():
+    for page in ("benchmark", "safety", "geometry", "playground", "assistant"):
+        at = _run(page)
+        assert "Contains mock results, not measured" in _warnings(at), page

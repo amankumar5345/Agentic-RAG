@@ -32,19 +32,29 @@ def arms_block() -> str:
     comparison = load("comparison.json")
     if comparison is None:
         return NOT_RUN
+    blocked_arms: set[str] = set()
     for path in RESULTS.glob("A*.json"):
         try:
-            if json.loads(path.read_text(encoding="utf-8")).get("mock"):
-                return NOT_RUN
+            payload = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             continue
+        if payload.get("mock"):
+            return NOT_RUN
+        if payload.get("status") == "blocked":
+            blocked_arms.add(path.stem)
     rows = []
     for arm, data in comparison.get("arms", {}).items():
+        if arm in blocked_arms:
+            continue
         metric = data.get("metrics", {}).get("answer_correctness", {})
         ci = metric.get("ci95")
         rows.append(
             f"| {arm} | {metric.get('delta')} | {ci} | {metric.get('n')} |"
         )
+    for arm in sorted(blocked_arms):
+        rows.append(f"| {arm} | NOT YET RUN | — | — |")
+    if not rows:
+        return NOT_RUN
     return "\n".join(
         [
             f"Baseline: `{comparison.get('baseline')}`",

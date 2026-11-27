@@ -46,6 +46,35 @@ def retrieve_chunks(user_input: str, retriever=None) -> list[RetrievedChunk]:
     return chunks
 
 
+def retrieve_with_scores(user_input: str, retriever=None) -> dict:
+    """Return the 25 candidates and 7 reranked documents with their scores.
+
+    This is a tracing-only helper. ``retrieve_chunks`` (and therefore the
+    agent and every evaluation arm) keeps using the production path and is not
+    affected by this function.
+    """
+    retriever = retriever or load_retriever()
+    base = retriever.base_retriever
+    compressor = retriever.base_compressor
+    candidates = list(base.invoke(user_input))
+    selected = list(compressor.compress_documents(candidates, user_input))
+
+    def row(document, index: int, prefix: str) -> dict:
+        metadata = getattr(document, "metadata", {}) or {}
+        source = str(metadata.get("source") or metadata.get("doc") or "")
+        return {
+            "id": str(metadata.get("id") or f"{prefix}{index}"),
+            "doc": source.replace("\\", "/").split("/")[-1],
+            "section": str(metadata.get("section", "")),
+            "score": metadata.get("relevance_score"),
+        }
+
+    return {
+        "candidates": [row(document, index, "K") for index, document in enumerate(candidates, 1)],
+        "selected": [row(document, index, "C") for index, document in enumerate(selected, 1)],
+    }
+
+
 @tool
 def load_prompt(user_input: str) -> str:
     """Retrieve official documents relevant to the user's technical question within 300 words strictly.

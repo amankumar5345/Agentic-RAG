@@ -12,6 +12,7 @@ from bench.schema import (
     QACase,
     RouterCase,
     assign_splits,
+    case_json,
     load_cases,
     read_cases,
     source_key,
@@ -43,6 +44,7 @@ def make_qa(
     question=None,
     sources=None,
     tolerance=None,
+    difficulty=None,
 ):
     verified = status == "verified"
     return QACase(
@@ -52,6 +54,7 @@ def make_qa(
         status=status,
         reviewer="r" if verified else None,
         reviewed_at=NOW if verified else None,
+        difficulty=difficulty,
         question=question or f"question {case_id}",
         gold_answer="answer",
         gold_sources=sources or [source(start=int(case_id.split("-")[-1]) * 100)],
@@ -203,3 +206,46 @@ def test_write_cases_rejects_duplicate_ids(tmp_path):
 
     with pytest.raises(ValueError):
         write_cases([first, second], tmp_path)
+
+
+def test_difficulty_is_optional_and_round_trips(tmp_path):
+    unset = make_qa("qa-1")
+    explicit = make_qa("qa-2", difficulty="hard")
+
+    assert unset.difficulty is None
+    assert explicit.difficulty == "hard"
+
+    write_cases([unset, explicit], tmp_path)
+    raw = (tmp_path / "qa.jsonl").read_text(encoding="utf-8")
+    assert '"difficulty":null' not in raw
+
+    loaded = sorted(read_cases(tmp_path), key=lambda case: case.id)
+    assert loaded[0].difficulty is None
+    assert loaded[1].difficulty == "hard"
+
+
+def test_difficulty_rejects_unknown_value():
+    with pytest.raises(ValidationError):
+        make_qa("qa-1", difficulty="extreme")
+
+
+def test_case_json_omits_unset_difficulty_and_preserves_hash_payload():
+    case = make_qa("qa-1")
+
+    assert case_json(case) == case.model_dump_json().replace('"difficulty":null,', "")
+
+
+def test_case_json_keeps_explicit_difficulty():
+    case = make_qa("qa-1", difficulty="easy")
+
+    assert '"difficulty":"easy"' in case_json(case)
+
+
+def test_case_json_matches_legacy_for_all_existing_cases():
+    from bench.schema import DATA_DIR
+
+    cases = read_cases(DATA_DIR)
+    assert cases
+    for case in cases:
+        legacy = case.model_dump_json().replace('"difficulty":null,', "")
+        assert case_json(case) == legacy, case.id

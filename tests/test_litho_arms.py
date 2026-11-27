@@ -230,3 +230,20 @@ def test_citation_agent_wraps_a8_and_abstains_or_cites():
     assert output.answer.endswith("[C1].")
     assert output.citations[0]["id"] == "C1"
     assert output.retrieval_calls == 1
+
+
+def test_citation_agent_abstains_when_support_cannot_be_established():
+    chunks = [CitationChunk(id="C1", text="Wear goggles.", doc="laser.pdf", section="PPE")]
+
+    def generator(question, context, feedback):
+        return "Wear goggles when using the laser [C1]."
+
+    judge = SimpleNamespace(supports=lambda sentence, chunk: False)
+
+    arm = CitationAgentArm("A8", FakeBaseArm(), lambda: chunks, generator, judge)
+    output = arm.answer("What PPE?")
+
+    assert "can't support this from the documents" in output.answer
+    assert output.citation_validation["abstained"] is True
+    assert output.citation_validation["ok"] is False
+    assert output.citations[0]["id"] == "C1"

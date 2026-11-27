@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "trace_id": "trace-69f0eba01811",
+  "recorded_at": "2026-11-27T09:52:52.216986+00:00",
+  "sample": true,
+  "source": "results/A5.json (mock replay)",
+  "mock": true,
+  "question": "What value of N provides the optimum balance between the gain in diffraction efficiency and the losses introduced by fabrication errors?",
+  "answer": "It turned out that the optimum balance between these two effects is given with N = 8.",
+  "guardrail": {
+    "verdict": "not recorded",
+    "category": "not recorded"
+  },
+  "router": {
+    "role": "not recorded"
+  },
+  "retrieval": {
+    "calls": 1,
+    "candidates": "not recorded",
+    "selected": [
+      {
+        "id": "gold-0",
+        "doc": "1-s2.0-S0169433296004205-main.pdf",
+        "score": 0.0
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "id": "gold-0",
+      "doc": "1-s2.0-S0169433296004205-main.pdf",
+      "section": "4.  Limitations",
+      "score": 0.0
+    }
+  ],
+  "citations": [
+    {
+      "doc": "1-s2.0-S0169433296004205-main.pdf",
+      "section": "4.  Limitations",
+      "char_start": 234329,
+      "char_end": 234925
+    }
+  ],
+  "citation_check": {
+    "result": "not recorded",
+    "coverage": "not recorded",
+    "precision": "not recorded",
+    "abstained": "not recorded",
+    "issues": "not recorded"
+  },
+  "stage_latencies": {
+    "retrieval_s": 0.0,
+    "generation_s": 0.0,
+    "total_s": 0.001701700035482645,
+    "judge_s": 0.001701700035482645
+  },
+  "tokens": {
+    "prompt": 484,
+    "completion": 19
+  },
+  "cost_usd": 0.0,
+  "redacted": true
+}

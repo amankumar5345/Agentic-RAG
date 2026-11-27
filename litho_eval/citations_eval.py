@@ -153,6 +153,8 @@ def main(argv: list[str] | None = None) -> int:
     a8_payload = _load_result(Path(args.a8))
     if not a5_payload or not a8_payload:
         payload = blocked("results/A5.json or results/A8.json is missing")
+    elif a5_payload.get("status") == "blocked" or a8_payload.get("status") == "blocked":
+        payload = blocked("A8 is NOT YET RUN; run a real A8 arm first")
     elif a5_payload.get("mock") or a8_payload.get("mock"):
         payload = blocked("A5/A8 results are mock; run real arms first")
     else:

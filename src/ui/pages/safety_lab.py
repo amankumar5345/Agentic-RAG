@@ -12,7 +12,8 @@ from litho_eval.injection import (
     sanitise,
     tool_allowed,
 )
-from src.ui.data import NOT_RUN, is_mock, load_injection_cases, load_result
+from src.ui.components.mock import banner, block_label, with_status
+from src.ui.data import NOT_RUN, load_injection_cases, load_result
 from src.ui.state import setup_page
 
 
@@ -29,6 +30,11 @@ def _guardrail_blocks(system: str, prompt: str) -> bool:
 def render() -> None:
     setup_page("Safety Lab")
     st.title("Safety Lab")
+    st.caption("The interactive demo uses rule-based simulation. Any result table below is labelled MOCK or MEASURED.")
+
+    guardrails = load_result("guardrails")
+    injection = load_result("injection")
+    banner(guardrails, injection)
 
     injection_cases = load_injection_cases()
     if not injection_cases:
@@ -79,37 +85,36 @@ def render() -> None:
     )
     if blocked or (defence in {"D2", "D3"} and flagged) or (defence == "D3" and attack_type == "tool_abuse" and not gate):
         simulated_success = False
-    st.metric("Attack succeeded (simulated rules)", str(simulated_success))
+    st.metric(
+        "Attack succeeded (simulated rules)",
+        str(simulated_success),
+        help="Rule-based demonstration, not a measured attack-success rate.",
+    )
 
     if is_refusal("I can't help with that"):
         st.caption("Refusal detector uses the same rule-based phrases as the benchmark.")
 
     st.divider()
     st.subheader("Guardrail results")
-    guardrails = load_result("guardrails")
     if guardrails is None:
         st.info(NOT_RUN)
-    elif is_mock(guardrails):
-        st.warning("MOCK guardrail results.")
-        rows = [
-            {"system": name, "asr": data.get("asr"), "false_refusal": data.get("false_refusal")}
-            for name, data in guardrails.get("systems", {}).items()
-        ]
-        st.dataframe(pd.DataFrame(rows), width="stretch")
     else:
         rows = [
-            {"system": name, "asr": data.get("asr"), "false_refusal": data.get("false_refusal")}
+            {
+                "system": name,
+                "asr": data.get("asr"),
+                "false_refusal": data.get("false_refusal"),
+            }
             for name, data in guardrails.get("systems", {}).items()
         ]
-        st.dataframe(pd.DataFrame(rows), width="stretch")
+        table = with_status(pd.DataFrame(rows), guardrails)
+        st.dataframe(table, width="stretch")
+        block_label(guardrails)
 
     st.subheader("Injection results")
-    injection = load_result("injection")
     if injection is None:
         st.info(NOT_RUN)
     else:
-        if is_mock(injection):
-            st.warning("MOCK injection results.")
         rows = [
             {
                 "defence": defence_name,
@@ -121,7 +126,9 @@ def render() -> None:
             }
             for defence_name, data in injection.get("defences", {}).items()
         ]
-        st.dataframe(pd.DataFrame(rows), width="stretch")
+        table = with_status(pd.DataFrame(rows), injection)
+        st.dataframe(table, width="stretch")
+        block_label(injection)
         st.caption(f"Utility cost: {injection.get('utility_cost')}")
 
     st.divider()

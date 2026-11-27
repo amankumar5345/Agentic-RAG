@@ -10,6 +10,7 @@ import streamlit as st
 from src.core.geometry import replay
 from src.ui.components.charts import latency_timeline
 from src.ui.components.geometry_card import render_geometry_card
+from src.ui.components.mock import banner, block_label, data_status
 from src.ui.data import NOT_RUN, load_cases, load_result
 from src.ui.state import setup_page
 
@@ -28,6 +29,8 @@ def render() -> None:
     case = next(case for case in geometry_cases if case["id"] == selected_id)
 
     result = load_result("geometry")
+    e2e = load_result("e2e_latency")
+    banner(result, e2e)
     result_case = None
     if result:
         result_case = next(
@@ -50,8 +53,7 @@ def render() -> None:
         ue_mode = "real"
     if result:
         ue_mode = result.get("ue_mode", ue_mode)
-        if result.get("mock") or ue_mode == "fake":
-            st.warning("SIMULATED geometry result; the preview and ack are not real Unreal measurements.")
+        block_label(result, f"ue_mode: {ue_mode}; latency is not a real Unreal measurement" if ue_mode == "fake" else f"ue_mode: {ue_mode}")
 
     render_geometry_card(
         commands,
@@ -88,20 +90,28 @@ def render() -> None:
         }
         st.plotly_chart(latency_timeline(stages), width="stretch")
         latency_frame = pd.DataFrame([stages])
+        latency_frame.insert(0, "data", data_status(result))
+        latency_frame["ue_mode"] = ue_mode
         st.dataframe(latency_frame, width="stretch")
+        block_label(result)
         from src.ui.components.charts import download_csv
 
         download_csv(latency_frame, "geometry_latency.csv", "geometry-latency-csv")
     else:
         st.info(NOT_RUN)
 
-    e2e = load_result("e2e_latency")
     if e2e and e2e.get("ue_mode") == "real" and e2e.get("status") == "ok":
         st.subheader("Measured text-to-ack")
         total = e2e.get("latency", {}).get("total", {})
         st.write({"p50": total.get("p50"), "p95": total.get("p95"), "ue_mode": "real"})
+    elif e2e is not None:
+        st.caption(
+            "Text-to-ack latency: MOCK/SIMULATED only; not measured."
+            if e2e.get("mock") or e2e.get("ue_mode") == "fake"
+            else "Text-to-ack latency: NOT YET RUN."
+        )
     else:
-        st.caption("Text-to-ack latency: NOT YET RUN or simulated only.")
+        st.caption("Text-to-ack latency: NOT YET RUN.")
 
 
 if __name__ == "__main__":

@@ -39,6 +39,14 @@ The checked-in `bench/data/*.jsonl` files contain drafts; run
 `python -m bench.validate --include-draft` for the current counts. Nothing is
 verified until `bench.review` has been run.
 
+## Difficulty
+
+Every case may carry an optional `difficulty` field (`easy`, `medium`, `hard`).
+Existing cases are unset. The UI may display a heuristic bucket for unset
+single-hop (`medium`) and multi-hop/numeric (`hard`) cases, but it is tagged
+**derived (heuristic)**, is never written back to the dataset files, and is
+never used in a README, resume or benchmark metric.
+
 ## Origins and the human rule
 
 Every case records `origin`:

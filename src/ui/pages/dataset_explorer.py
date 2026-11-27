@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from src.ui.data import (
-    derived_difficulty,
+    difficulty_view,
     gold_text,
     load_cases,
     load_doc,
@@ -18,14 +18,21 @@ from src.ui.state import setup_page
 def render() -> None:
     setup_page("Dataset Explorer")
     st.title("Dataset Explorer")
+    st.caption(
+        "Difficulty is shown as stored when present. Unset cases may show a "
+        "'derived (heuristic)' bucket; it is not written back to the dataset and "
+        "is never used in reported metrics."
+    )
 
     cases = load_cases()
     if not cases:
         st.warning("NOT YET RUN: no LithoBench cases found.")
         return
 
-    frame = pd.DataFrame(
-        [
+    rows = []
+    for case in cases:
+        difficulty, source = difficulty_view(case)
+        rows.append(
             {
                 "id": case.get("id"),
                 "type": case.get("type"),
@@ -33,11 +40,11 @@ def render() -> None:
                 "split": case.get("split"),
                 "origin": case.get("origin"),
                 "status": case.get("status"),
-                "difficulty": derived_difficulty(case),
+                "difficulty": difficulty,
+                "difficulty_source": source,
             }
-            for case in cases
-        ]
-    )
+        )
+    frame = pd.DataFrame(rows)
 
     st.sidebar.subheader("Filters")
     types = st.sidebar.multiselect("Type", sorted(frame["type"].dropna().unique()))
@@ -45,7 +52,7 @@ def render() -> None:
     origins = st.sidebar.multiselect("Origin", sorted(frame["origin"].dropna().unique()))
     statuses = st.sidebar.multiselect("Status", sorted(frame["status"].dropna().unique()))
     difficulties = st.sidebar.multiselect(
-        "Difficulty (derived)", sorted(frame["difficulty"].dropna().unique())
+        "Difficulty (stored or derived)", sorted(frame["difficulty"].dropna().unique())
     )
 
     filtered = frame.copy()
