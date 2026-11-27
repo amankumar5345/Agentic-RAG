@@ -540,7 +540,7 @@ any of that actually works.</p>
 <div class="honest">
   <span class="label red">Status &mdash; read before quoting anything</span>
   The <strong>software</strong> is complete and tested. The <strong>benchmark</strong> is not yet a
-  published result. At this snapshot the dataset contains <strong>236 drafts and 0 verified cases</strong>
+  published result. At this snapshot the dataset contains <strong>323 drafts and 0 verified cases</strong>
   (target: 370), the 40 injection cases are also unreviewed, and every file under <code>results/</code>
   is either <strong>MOCK</strong>, <strong>blocked</strong>, or labelled <code>ue_mode: fake</code>.
   Real arm, guardrail, geometry, injection, citation and latency runs require human verification
@@ -1767,13 +1767,14 @@ because the system has four distinct behaviours that fail in different ways.</p>
   <thead><tr><th>File</th><th class="num">Drafts</th><th class="num">Target</th><th>Status</th></tr></thead>
   <tbody>
     <tr><td><code>qa.jsonl</code></td><td class="num">178</td><td class="num">180</td><td><span class="badge draft">draft</span></td></tr>
-    <tr><td><code>adversarial.jsonl</code></td><td class="num">24</td><td class="num">80</td><td><span class="badge draft">draft</span></td></tr>
-    <tr><td><code>geometry.jsonl</code></td><td class="num">11</td><td class="num">50</td><td><span class="badge draft">draft</span></td></tr>
-    <tr><td><code>router.jsonl</code></td><td class="num">23</td><td class="num">60</td><td><span class="badge draft">draft</span></td></tr>
-    <tr><td><code>injection/cases.jsonl</code></td><td class="num">40</td><td class="num">40</td><td><span class="badge draft">draft</span></td></tr>
-    <tr><td><strong>Total LithoBench</strong></td><td class="num"><strong>236</strong></td><td class="num"><strong>370</strong></td><td><strong>0 verified</strong></td></tr>
+    <tr><td><code>adversarial.jsonl</code></td><td class="num">79</td><td class="num">80</td><td><span class="badge draft">draft</span></td></tr>
+    <tr><td><code>geometry.jsonl</code></td><td class="num">47</td><td class="num">50</td><td><span class="badge draft">draft</span></td></tr>
+    <tr><td><code>router.jsonl</code></td><td class="num">19</td><td class="num">60</td><td><span class="badge draft">draft</span></td></tr>
+    <tr><td><strong>Total LithoBench</strong></td><td class="num"><strong>323</strong></td><td class="num"><strong>370</strong></td><td><strong>0 verified</strong></td></tr>
   </tbody>
 </table>
+
+<p class="small">The injection set is counted separately: 40 drafts against a target of 40, all unverified.</p>
 
 <p>These counts are read from the checked-in JSONL files, not typed into the README. The
 <code>bench.validate --include-draft</code> command is the authoritative check and currently fails
@@ -2468,7 +2469,7 @@ interview or a report.</p>
     <tr><td>Injection D0&ndash;D3</td><td>Complete</td><td>Unit tests, mock run</td><td><span class="badge ok">implemented</span> &middot; cases unverified</td></tr>
     <tr><td>Streamlit UI, 7 pages</td><td>Complete</td><td>AppTest + health 200</td><td><span class="badge ok">working in demo</span></td></tr>
     <tr><td>CI, README generation, claim check</td><td>Complete</td><td>Local runs pass</td><td><span class="badge ok">passing</span></td></tr>
-    <tr><td>LithoBench verified set</td><td>Drafting complete</td><td>236 drafts</td><td><span class="badge blocked">0 verified</span></td></tr>
+    <tr><td>LithoBench verified set</td><td>Drafting complete</td><td>323 drafts</td><td><span class="badge blocked">0 verified</span></td></tr>
     <tr><td>Real arm results</td><td>Runner ready</td><td><code>results/A*.json</code></td><td><span class="badge mock">mock</span></td></tr>
     <tr><td>Guardrail / geometry / injection results</td><td>Harness ready</td><td><code>results/*.json</code></td><td><span class="badge mock">mock</span></td></tr>
     <tr><td>Citations result</td><td>Harness ready</td><td><code>results/citations.json</code></td><td><span class="badge blocked">blocked</span></td></tr>
@@ -2484,7 +2485,7 @@ interview or a report.</p>
   <li>The Streamlit health endpoint returns <strong>200 ok</strong> on a fresh port.</li>
   <li><code>build_readme.py --check</code> and <code>claim_check.py</code> pass.</li>
   <li>The mock arm sweep completes for A0&ndash;A8 with five cases and writes a comparison.</li>
-  <li>The dataset contains <strong>236 drafts</strong>; the injection set contains <strong>40 drafts</strong>.</li>
+  <li>The dataset contains <strong>323 drafts</strong>; the injection set contains <strong>40 drafts</strong>.</li>
   <li>Groq was reachable at the snapshot; DeepSeek failed with insufficient balance.</li>
 </ul>
 
@@ -2492,7 +2493,7 @@ interview or a report.</p>
 <table class="compact">
   <thead><tr><th style="width:26%">Blocker</th><th>Impact</th><th style="width:26%">Resolution</th></tr></thead>
   <tbody>
-    <tr><td>Human review of 236 drafts</td><td>No verified LithoBench; every real arm is blocked.</td><td>Project author / domain reviewer runs <code>bench.review</code>.</td></tr>
+    <tr><td>Human review of 323 drafts</td><td>No verified LithoBench; every real arm is blocked.</td><td>Project author / domain reviewer runs <code>bench.review</code>.</td></tr>
     <tr><td>Human review of 40 injection cases</td><td>Real D0&ndash;D3 cannot run.</td><td><code>bench.review --injection</code>.</td></tr>
     <tr><td>Ollama + <code>bge-m3</code></td><td>No dense retrieval, no G2 baseline, no real A1/A3/A4/A8.</td><td>Install Ollama, pull the model, build Chroma.</td></tr>
     <tr><td>Provider quota / balance</td><td>Drafting and judging can stall.</td><td>Wait for reset, upgrade tier, or fund DeepSeek.</td></tr>
@@ -2509,7 +2510,7 @@ interview or a report.</p>
     <li>&ldquo;The benchmark shows X% accuracy.&rdquo; No real arm has run.</li>
     <li>&ldquo;The system is 100% safe.&rdquo; No safety system is; only ASR on a finite suite can be reported.</li>
     <li>&ldquo;End-to-end latency is N ms.&rdquo; The only file is <code>ue_mode: fake</code>.</li>
-    <li>&ldquo;The dataset is complete.&rdquo; It is 236 drafts against a target of 370, with zero verified.</li>
+    <li>&ldquo;The dataset is complete.&rdquo; It is 323 drafts against a target of 370, with zero verified.</li>
     <li>&ldquo;Citations are always correct.&rdquo; The validator and judge are heuristics with known failure modes.</li>
   </ul>
 </div>
@@ -2666,7 +2667,7 @@ actual control flow.</p>
   <thead><tr><th style="width:42%">Claim</th><th>Safe phrasing</th></tr></thead>
   <tbody>
     <tr><td>Tests</td><td>&ldquo;179 offline tests pass at commit b45258b.&rdquo;</td></tr>
-    <tr><td>Dataset size</td><td>&ldquo;236 drafts exist against a target of 370; zero are verified yet.&rdquo;</td></tr>
+    <tr><td>Dataset size</td><td>&ldquo;323 drafts exist against a target of 370; zero are verified yet.&rdquo;</td></tr>
     <tr><td>Injection set</td><td>&ldquo;40 draft cases, ten per attack type.&rdquo;</td></tr>
     <tr><td>Corpus</td><td>&ldquo;60 source PDFs, about 3.4 MB of extracted text.&rdquo;</td></tr>
     <tr><td>Retrieval configuration</td><td>&ldquo;25 candidates reranked to 7; 1000-character chunks with 150 overlap.&rdquo;</td></tr>
@@ -2823,7 +2824,7 @@ would run a small human usability study early to learn which answers operators a
 <div class="qa"><p class="q">Q19. What is the current status?</p>
 <p class="a">Software complete and tested: 179 tests pass, lint is clean, CI is green, the Streamlit
 health check returns 200, and the mock paths run end to end. The benchmark is not published:
-236 drafts against a target of 370, zero verified, and every result file is mock or blocked. Real
+323 drafts against a target of 370, zero verified, and every result file is mock or blocked. Real
 runs need human review, Ollama, API access and Unreal. I report that explicitly rather than quoting
 mock numbers.</p></div>
 
@@ -3271,7 +3272,7 @@ the README is stale, and <code>claim_check.py</code> scans for quantified claims
 source. The workflow makes a hand-typed number a CI failure, not a style issue.</p></div>
 
 <div class="qa"><p class="q">Q88. What results do you have today?</p>
-<p class="a">No real benchmark results. The dataset has 236 drafts and zero verified cases; the arm,
+<p class="a">No real benchmark results. The dataset has 323 drafts and zero verified cases; the arm,
 guardrail, geometry, injection and latency files are mock or blocked. What is verified is the
 engineering: 179 tests, lint, CI, the health check, and the mock paths. I can explain exactly what
 will be measured and why it is not yet legitimate to quote a score.</p></div>
@@ -3358,7 +3359,7 @@ evaluation loop becomes continuous, not where it ends.</p></div>
 <h2>31.9 Difficult and behavioural questions (Q101&ndash;Q108)</h2>
 
 <div class="qa"><p class="q">Q101. What is the weakest part of the project?</p>
-<p class="a">The data. The code and harness are strong, but the dataset is 236 drafts against a
+<p class="a">The data. The code and harness are strong, but the dataset is 323 drafts against a
 target of 370, with zero verified and a human-review dependency. That is the critical path and the
 main reason there are no real numbers. I would rather say that than dress up mock results. The second
 weakness is that cost accounting does not yet cover the LangGraph path.</p></div>

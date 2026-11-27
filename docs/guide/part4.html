@@ -48,7 +48,7 @@ actual control flow.</p>
   <thead><tr><th style="width:42%">Claim</th><th>Safe phrasing</th></tr></thead>
   <tbody>
     <tr><td>Tests</td><td>&ldquo;179 offline tests pass at commit b45258b.&rdquo;</td></tr>
-    <tr><td>Dataset size</td><td>&ldquo;236 drafts exist against a target of 370; zero are verified yet.&rdquo;</td></tr>
+    <tr><td>Dataset size</td><td>&ldquo;323 drafts exist against a target of 370; zero are verified yet.&rdquo;</td></tr>
     <tr><td>Injection set</td><td>&ldquo;40 draft cases, ten per attack type.&rdquo;</td></tr>
     <tr><td>Corpus</td><td>&ldquo;60 source PDFs, about 3.4 MB of extracted text.&rdquo;</td></tr>
     <tr><td>Retrieval configuration</td><td>&ldquo;25 candidates reranked to 7; 1000-character chunks with 150 overlap.&rdquo;</td></tr>
@@ -205,7 +205,7 @@ would run a small human usability study early to learn which answers operators a
 <div class="qa"><p class="q">Q19. What is the current status?</p>
 <p class="a">Software complete and tested: 179 tests pass, lint is clean, CI is green, the Streamlit
 health check returns 200, and the mock paths run end to end. The benchmark is not published:
-236 drafts against a target of 370, zero verified, and every result file is mock or blocked. Real
+323 drafts against a target of 370, zero verified, and every result file is mock or blocked. Real
 runs need human review, Ollama, API access and Unreal. I report that explicitly rather than quoting
 mock numbers.</p></div>
 
@@ -653,7 +653,7 @@ the README is stale, and <code>claim_check.py</code> scans for quantified claims
 source. The workflow makes a hand-typed number a CI failure, not a style issue.</p></div>
 
 <div class="qa"><p class="q">Q88. What results do you have today?</p>
-<p class="a">No real benchmark results. The dataset has 236 drafts and zero verified cases; the arm,
+<p class="a">No real benchmark results. The dataset has 323 drafts and zero verified cases; the arm,
 guardrail, geometry, injection and latency files are mock or blocked. What is verified is the
 engineering: 179 tests, lint, CI, the health check, and the mock paths. I can explain exactly what
 will be measured and why it is not yet legitimate to quote a score.</p></div>
@@ -740,7 +740,7 @@ evaluation loop becomes continuous, not where it ends.</p></div>
 <h2>31.9 Difficult and behavioural questions (Q101&ndash;Q108)</h2>
 
 <div class="qa"><p class="q">Q101. What is the weakest part of the project?</p>
-<p class="a">The data. The code and harness are strong, but the dataset is 236 drafts against a
+<p class="a">The data. The code and harness are strong, but the dataset is 323 drafts against a
 target of 370, with zero verified and a human-review dependency. That is the critical path and the
 main reason there are no real numbers. I would rather say that than dress up mock results. The second
 weakness is that cost accounting does not yet cover the LangGraph path.</p></div>

@@ -77,13 +77,14 @@ because the system has four distinct behaviours that fail in different ways.</p>
   <thead><tr><th>File</th><th class="num">Drafts</th><th class="num">Target</th><th>Status</th></tr></thead>
   <tbody>
     <tr><td><code>qa.jsonl</code></td><td class="num">178</td><td class="num">180</td><td><span class="badge draft">draft</span></td></tr>
-    <tr><td><code>adversarial.jsonl</code></td><td class="num">24</td><td class="num">80</td><td><span class="badge draft">draft</span></td></tr>
-    <tr><td><code>geometry.jsonl</code></td><td class="num">11</td><td class="num">50</td><td><span class="badge draft">draft</span></td></tr>
-    <tr><td><code>router.jsonl</code></td><td class="num">23</td><td class="num">60</td><td><span class="badge draft">draft</span></td></tr>
-    <tr><td><code>injection/cases.jsonl</code></td><td class="num">40</td><td class="num">40</td><td><span class="badge draft">draft</span></td></tr>
-    <tr><td><strong>Total LithoBench</strong></td><td class="num"><strong>236</strong></td><td class="num"><strong>370</strong></td><td><strong>0 verified</strong></td></tr>
+    <tr><td><code>adversarial.jsonl</code></td><td class="num">79</td><td class="num">80</td><td><span class="badge draft">draft</span></td></tr>
+    <tr><td><code>geometry.jsonl</code></td><td class="num">47</td><td class="num">50</td><td><span class="badge draft">draft</span></td></tr>
+    <tr><td><code>router.jsonl</code></td><td class="num">19</td><td class="num">60</td><td><span class="badge draft">draft</span></td></tr>
+    <tr><td><strong>Total LithoBench</strong></td><td class="num"><strong>323</strong></td><td class="num"><strong>370</strong></td><td><strong>0 verified</strong></td></tr>
   </tbody>
 </table>
+
+<p class="small">The injection set is counted separately: 40 drafts against a target of 40, all unverified.</p>
 
 <p>These counts are read from the checked-in JSONL files, not typed into the README. The
 <code>bench.validate --include-draft</code> command is the authoritative check and currently fails
@@ -778,7 +779,7 @@ interview or a report.</p>
     <tr><td>Injection D0&ndash;D3</td><td>Complete</td><td>Unit tests, mock run</td><td><span class="badge ok">implemented</span> &middot; cases unverified</td></tr>
     <tr><td>Streamlit UI, 7 pages</td><td>Complete</td><td>AppTest + health 200</td><td><span class="badge ok">working in demo</span></td></tr>
     <tr><td>CI, README generation, claim check</td><td>Complete</td><td>Local runs pass</td><td><span class="badge ok">passing</span></td></tr>
-    <tr><td>LithoBench verified set</td><td>Drafting complete</td><td>236 drafts</td><td><span class="badge blocked">0 verified</span></td></tr>
+    <tr><td>LithoBench verified set</td><td>Drafting complete</td><td>323 drafts</td><td><span class="badge blocked">0 verified</span></td></tr>
     <tr><td>Real arm results</td><td>Runner ready</td><td><code>results/A*.json</code></td><td><span class="badge mock">mock</span></td></tr>
     <tr><td>Guardrail / geometry / injection results</td><td>Harness ready</td><td><code>results/*.json</code></td><td><span class="badge mock">mock</span></td></tr>
     <tr><td>Citations result</td><td>Harness ready</td><td><code>results/citations.json</code></td><td><span class="badge blocked">blocked</span></td></tr>
@@ -794,7 +795,7 @@ interview or a report.</p>
   <li>The Streamlit health endpoint returns <strong>200 ok</strong> on a fresh port.</li>
   <li><code>build_readme.py --check</code> and <code>claim_check.py</code> pass.</li>
   <li>The mock arm sweep completes for A0&ndash;A8 with five cases and writes a comparison.</li>
-  <li>The dataset contains <strong>236 drafts</strong>; the injection set contains <strong>40 drafts</strong>.</li>
+  <li>The dataset contains <strong>323 drafts</strong>; the injection set contains <strong>40 drafts</strong>.</li>
   <li>Groq was reachable at the snapshot; DeepSeek failed with insufficient balance.</li>
 </ul>
 
@@ -802,7 +803,7 @@ interview or a report.</p>
 <table class="compact">
   <thead><tr><th style="width:26%">Blocker</th><th>Impact</th><th style="width:26%">Resolution</th></tr></thead>
   <tbody>
-    <tr><td>Human review of 236 drafts</td><td>No verified LithoBench; every real arm is blocked.</td><td>Project author / domain reviewer runs <code>bench.review</code>.</td></tr>
+    <tr><td>Human review of 323 drafts</td><td>No verified LithoBench; every real arm is blocked.</td><td>Project author / domain reviewer runs <code>bench.review</code>.</td></tr>
     <tr><td>Human review of 40 injection cases</td><td>Real D0&ndash;D3 cannot run.</td><td><code>bench.review --injection</code>.</td></tr>
     <tr><td>Ollama + <code>bge-m3</code></td><td>No dense retrieval, no G2 baseline, no real A1/A3/A4/A8.</td><td>Install Ollama, pull the model, build Chroma.</td></tr>
     <tr><td>Provider quota / balance</td><td>Drafting and judging can stall.</td><td>Wait for reset, upgrade tier, or fund DeepSeek.</td></tr>
@@ -819,7 +820,7 @@ interview or a report.</p>
     <li>&ldquo;The benchmark shows X% accuracy.&rdquo; No real arm has run.</li>
     <li>&ldquo;The system is 100% safe.&rdquo; No safety system is; only ASR on a finite suite can be reported.</li>
     <li>&ldquo;End-to-end latency is N ms.&rdquo; The only file is <code>ue_mode: fake</code>.</li>
-    <li>&ldquo;The dataset is complete.&rdquo; It is 236 drafts against a target of 370, with zero verified.</li>
+    <li>&ldquo;The dataset is complete.&rdquo; It is 323 drafts against a target of 370, with zero verified.</li>
     <li>&ldquo;Citations are always correct.&rdquo; The validator and judge are heuristics with known failure modes.</li>
   </ul>
 </div>
